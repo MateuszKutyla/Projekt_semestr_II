@@ -1,5 +1,6 @@
 ﻿#!/usr/bin/env python3
 import argparse
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -21,7 +22,7 @@ def path(relative_path):
 
 def ensure_dirs():
     for directory in [
-        "data/clean",
+        "data/clean",`r`n        "data/assemble_genome",
         "logs",
         "results/qc/illumina_before",
         "results/qc/illumina_after",
@@ -127,6 +128,20 @@ def run_qc_before_after_ont(log_handle):
     )
 
 
+def publish_assembly(assembly_file, label, log_handle):
+    output_dir = path("data/assemble_genome")
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    labeled_output = output_dir / f"{label}.fasta"
+    latest_output = output_dir / "latest_assembly.fasta"
+
+    shutil.copy2(assembly_file, labeled_output)
+    shutil.copy2(assembly_file, latest_output)
+
+    log_handle.write(f"Skopiowano genom do: {labeled_output}\n")
+    log_handle.write(f"Zaktualizowano plik dla predykcji genow: {latest_output}\n")
+
+
 def run_quast_busco(assembly_file, label, lineage, threads, log_handle):
     qc_dir = path(f"results/assembly_qc/{label}")
     qc_dir.mkdir(parents=True, exist_ok=True)
@@ -163,6 +178,7 @@ def run_illumina_pipeline(args, log_handle):
     )
 
     run_quast_busco(out_dir / "contigs.fasta", "spades_illumina", args.busco_lineage, args.threads, log_handle)
+    publish_assembly(out_dir / "contigs.fasta", "spades_illumina", log_handle)
 
 
 def run_ont_pipeline(args, log_handle):
@@ -176,6 +192,7 @@ def run_ont_pipeline(args, log_handle):
     )
 
     run_quast_busco(out_dir / "assembly.fasta", "flye_ont", args.busco_lineage, args.threads, log_handle)
+    publish_assembly(out_dir / "assembly.fasta", "flye_ont", log_handle)
 
 
 def run_hybrid_pipeline(args, log_handle):
@@ -197,6 +214,7 @@ def run_hybrid_pipeline(args, log_handle):
     )
 
     run_quast_busco(out_dir / "contigs.fasta", "spades_hybrid", args.busco_lineage, args.threads, log_handle)
+    publish_assembly(out_dir / "contigs.fasta", "spades_hybrid", log_handle)
 
 
 def main():
@@ -226,3 +244,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

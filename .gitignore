@@ -13,3 +13,6 @@ __pycache__/
 
 data/clean/*
 !data/clean/.gitkeep
+
+data/assemble_genome/*
+!data/assemble_genome/.gitkeep
