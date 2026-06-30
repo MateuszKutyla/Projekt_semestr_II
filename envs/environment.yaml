@@ -16,6 +16,7 @@ dependencies:
   - nanoplot
   - fastp
   - filtlong
+  - porechop
 
   # De novo assembly
   - spades
@@ -34,3 +35,4 @@ dependencies:
 
   # General utilities
   - seqkit
+

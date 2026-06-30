@@ -145,37 +145,16 @@ class GenomePipelineApp(tk.Tk):
         ])
 
     def run_illumina_assembly(self):
-        output_dir = self.project_path("results/assembly/spades_illumina")
-        command = [
-            "spades.py",
-            "-1", self.default_illumina_r1(),
-            "-2", self.default_illumina_r2(),
-            "-o", str(output_dir),
-            "-t", "8"
-        ]
-        self.run_command("Assemblacja de novo Illumina - SPAdes", command)
+        command = ["python3", "scripts/run_denovo_assembly.py", "--mode", "illumina"]
+        self.run_command("Pipeline assemblacji de novo Illumina", command)
 
     def run_ont_assembly(self):
-        output_dir = self.project_path("results/assembly/flye_ont")
-        command = [
-            "flye",
-            "--nano-raw", self.default_ont(),
-            "--out-dir", str(output_dir),
-            "--threads", "8"
-        ]
-        self.run_command("Assemblacja de novo ONT - Flye", command)
+        command = ["python3", "scripts/run_denovo_assembly.py", "--mode", "ont"]
+        self.run_command("Pipeline assemblacji de novo ONT", command)
 
     def run_hybrid_assembly(self):
-        output_dir = self.project_path("results/assembly/spades_hybrid")
-        command = [
-            "spades.py",
-            "-1", self.default_illumina_r1(),
-            "-2", self.default_illumina_r2(),
-            "--nanopore", self.default_ont(),
-            "-o", str(output_dir),
-            "-t", "8"
-        ]
-        self.run_command("Assemblacja hybrydowa Illumina + ONT - SPAdes", command)
+        command = ["python3", "scripts/run_denovo_assembly.py", "--mode", "hybrid"]
+        self.run_command("Pipeline assemblacji hybrydowej Illumina + ONT", command)
 
     def run_command(self, title, command):
         if self.current_process is not None:
@@ -254,3 +233,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
