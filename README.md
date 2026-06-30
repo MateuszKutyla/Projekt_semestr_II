@@ -17,30 +17,10 @@ Projekt zakłada wykorzystanie:
 
 Surowych danych nie dodajemy do repozytorium Git. Należy je trzymać lokalnie w `data/raw/`.
 
-Przykład:
-
-```text
-data/raw/
-  illumina_R1.fastq.gz
-  illumina_R2.fastq.gz
-  ont_reads.fastq.gz
-cd "C:\Users\Użytkownik\Documents\Codex\2026-06-27\b\Projekt_semestr_II"
-
-@'
-# Projekt semestralny II
-
-## Temat
-
-Złożenie genomu grzyba na podstawie danych sekwencjonowania Illumina oraz Oxford Nanopore Technologies (ONT).
-
-## Cel projektu
-
-Celem projektu jest przygotowanie powtarzalnego pipeline'u bioinformatycznego do kontroli jakości odczytów, oczyszczania danych, składania genomu, polishingu oraz oceny jakości otrzymanego złożenia.
-
 ## Struktura repozytorium
 
 - `config/` - konfiguracja projektu
-- `data/raw/` - surowe dane sekwencjonowania, bez dodawania do Git
+- `data/raw/` - surowe dane sekwencjonowania
 - `data/processed/` - oczyszczone dane
 - `docs/` - dokumentacja i opis pipeline'u
 - `envs/` - środowisko Conda/Mamba
