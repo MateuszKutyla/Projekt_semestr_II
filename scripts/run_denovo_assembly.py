@@ -22,7 +22,8 @@ def path(relative_path):
 
 def ensure_dirs():
     for directory in [
-        "data/clean",`r`n        "data/assemble_genome",
+        "data/clean",
+        "data/assemble_genome",
         "logs",
         "results/qc/illumina_before",
         "results/qc/illumina_after",
@@ -244,4 +245,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
