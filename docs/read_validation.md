@@ -17,6 +17,7 @@ Polecenie uruchomienia:
 
 python3 scripts/validate_reads.py --illumina-r1 data/raw/illumina_R1.fastq.gz --illumina-r2 data/raw/illumina_R2.fastq.gz --ont data/raw/ont_reads.fastq.gz
 
-Raport zostanie zapisany w katalogu results/read_validation/.
+Raport tekstowy zostanie zapisany jako results/read_validation/read_validation_report.txt.
 
 Folder data/clean/ jest przeznaczony na późniejsze czyste dane.
+

@@ -221,7 +221,7 @@ def main():
         "all_valid": all(item["valid"] for item in files) and pairs["valid"]
     }
 
-    (report_dir / "read_validation_report.md").write_text(make_markdown(report), encoding="utf-8")
+    (report_dir / "read_validation_report.txt").write_text(make_markdown(report), encoding="utf-8")
     (report_dir / "read_validation_report.json").write_text(
         json.dumps(report, indent=2, ensure_ascii=False),
         encoding="utf-8"
@@ -237,4 +237,5 @@ def main():
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
 
