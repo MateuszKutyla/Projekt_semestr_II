@@ -32,7 +32,9 @@ dependencies:
   # Assembly quality assessment
   - quast
   - busco
+  - augustus
 
   # General utilities
   - seqkit
+
 

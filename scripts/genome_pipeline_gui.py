@@ -216,8 +216,67 @@ class GenomePipelineApp(tk.Tk):
         self.write_log(f"Wybrano moduł: {module_name}. Funkcja zostanie dodana później.")
         messagebox.showinfo(module_name, "Funkcja tego modułu zostanie dodana w kolejnym etapie.")
 
+    def open_gene_prediction_window(self):
+        window = tk.Toplevel(self)
+        window.title("Predykcja genów")
+        window.geometry("620x360")
+        window.minsize(560, 320)
+        window.transient(self)
+
+        frame = ttk.Frame(window, padding=20)
+        frame.pack(fill="both", expand=True)
+
+        ttk.Label(frame, text="Predykcja genów", font=("Segoe UI", 18, "bold")).pack(anchor="w")
+        ttk.Label(
+            frame,
+            text="Wybierz referencyjny model grzyba dla narzędzia Augustus.",
+            wraplength=560
+        ).pack(anchor="w", pady=(6, 16))
+
+        species_list = [
+            "aspergillus_nidulans",
+            "botrytis_cinerea",
+            "candida_albicans",
+            "candida_guilliermondii",
+            "candida_tropicalis",
+            "cryptococcus_neoformans_gattii",
+            "fusarium_graminearum",
+            "laccaria_bicolor",
+            "neurospora_crassa",
+            "saccharomyces_cerevisiae_S288C",
+            "ustilago_maydis",
+            "yarrowia_lipolytica"
+        ]
+
+        selected_species = tk.StringVar(value="aspergillus_nidulans")
+
+        ttk.Label(frame, text="Referencyjny gatunek/model:").pack(anchor="w")
+        combo = ttk.Combobox(frame, textvariable=selected_species, values=species_list, state="readonly")
+        combo.pack(fill="x", pady=(6, 18))
+
+        ttk.Label(
+            frame,
+            text="Wejście: data/assemble_genome/latest_assembly.fasta",
+            wraplength=560
+        ).pack(anchor="w", pady=(0, 14))
+
+        ttk.Button(
+            frame,
+            text="Uruchom predykcję genów",
+            command=lambda: self.run_gene_prediction_with_species(selected_species.get())
+        ).pack(anchor="e")
+
+    def run_gene_prediction_with_species(self, species):
+        command = [
+            "python3",
+            "scripts/run_gene_prediction.py",
+            "--species",
+            species
+        ]
+        self.run_command(f"Predykcja genów - Augustus ({species})", command)
+
     def run_gene_prediction(self):
-        self.placeholder("Predykcja genów")
+        self.open_gene_prediction_window()
 
     def run_annotation(self):
         self.placeholder("Annotacja funkcjonalna")
@@ -233,4 +292,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
