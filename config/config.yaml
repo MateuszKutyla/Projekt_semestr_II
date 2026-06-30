@@ -1,0 +1,8 @@
+﻿sample_name: fungus_sample
+
+reads:
+  illumina_r1: data/raw/illumina_R1.fastq.gz
+  illumina_r2: data/raw/illumina_R2.fastq.gz
+  ont: data/raw/ont_reads.fastq.gz
+
+threads: 8

@@ -1,0 +1,19 @@
+﻿name: fungus-genome-assembly
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.11
+  - fastqc
+  - multiqc
+  - nanoplot
+  - fastp
+  - filtlong
+  - flye
+  - minimap2
+  - racon
+  - bwa
+  - samtools
+  - pilon
+  - quast
+  - busco
