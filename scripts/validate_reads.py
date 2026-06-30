@@ -2,6 +2,7 @@
 import argparse
 import gzip
 import json
+import shutil
 from datetime import datetime
 from pathlib import Path
 
@@ -14,6 +15,12 @@ def open_fastq(path):
     if str(path).endswith(".gz"):
         return gzip.open(path, "rt", encoding="utf-8", errors="replace")
     return open(path, "rt", encoding="utf-8", errors="replace")
+
+
+def open_output_fastq(path):
+    if str(path).endswith(".gz"):
+        return gzip.open(path, "wt", encoding="utf-8")
+    return open(path, "wt", encoding="utf-8")
 
 
 def read_fastq(path):
@@ -135,6 +142,139 @@ def validate_pairs(r1, r2, max_errors=20, max_records=None):
     return result
 
 
+def clean_output_path(input_path, clean_dir, suffix="clean"):
+    path = Path(input_path)
+    name = path.name
+    if name.endswith(".fastq.gz"):
+        out_name = name.replace(".fastq.gz", f".{suffix}.fastq.gz")
+    elif name.endswith(".fq.gz"):
+        out_name = name.replace(".fq.gz", f".{suffix}.fq.gz")
+    elif name.endswith(".fastq"):
+        out_name = name.replace(".fastq", f".{suffix}.fastq")
+    elif name.endswith(".fq"):
+        out_name = name.replace(".fq", f".{suffix}.fq")
+    else:
+        out_name = f"{name}.{suffix}.fq"
+    return Path(clean_dir) / out_name
+
+
+def repair_record(header, seq, plus, qual):
+    changes = []
+
+    if not header.startswith("@"):
+        header = "@" + header.lstrip("@")
+        changes.append("naprawiono naglowek")
+
+    seq = "".join(base.upper() if base in VALID_BASES else "N" for base in seq)
+    if "N" in seq:
+        changes.append("zamieniono niedozwolone zasady na N")
+
+    plus = "+"
+
+    qual = "".join(ch if VALID_QUAL_MIN <= ord(ch) <= VALID_QUAL_MAX else "!" for ch in qual)
+    if len(seq) != len(qual):
+        common_length = min(len(seq), len(qual))
+        seq = seq[:common_length]
+        qual = qual[:common_length]
+        changes.append("przycieto sekwencje i jakosc do wspolnej dlugosci")
+
+    if not seq or not qual:
+        return None, changes + ["pominieto pusty rekord"]
+
+    return (header, seq, plus, qual), changes
+
+
+def write_record(handle, record):
+    header, seq, plus, qual = record
+    handle.write(f"{header}\n{seq}\n{plus}\n{qual}\n")
+
+
+def repair_single_fastq(input_path, output_path, max_records=None):
+    stats = {"input": str(input_path), "output": str(output_path), "written": 0, "skipped": 0, "changes": []}
+
+    with open_output_fastq(output_path) as output:
+        for number, header, seq, plus, qual in read_fastq(input_path):
+            if max_records is not None and stats["written"] >= max_records:
+                stats["changes"].append(f"tryb testowy: zapisano pierwsze {max_records} rekordow")
+                break
+
+            repaired, changes = repair_record(header, seq, plus, qual)
+            stats["changes"].extend([f"rekord {number}: {change}" for change in changes])
+
+            if repaired is None:
+                stats["skipped"] += 1
+                continue
+
+            write_record(output, repaired)
+            stats["written"] += 1
+
+    return stats
+
+
+def repair_illumina_pairs(r1_path, r2_path, clean_dir, max_records=None):
+    r1_output = clean_output_path(r1_path, clean_dir)
+    r2_output = clean_output_path(r2_path, clean_dir)
+    stats = {
+        "input_r1": str(r1_path),
+        "input_r2": str(r2_path),
+        "output_r1": str(r1_output),
+        "output_r2": str(r2_output),
+        "written_pairs": 0,
+        "skipped_pairs": 0,
+        "changes": []
+    }
+
+    with open_output_fastq(r1_output) as out1, open_output_fastq(r2_output) as out2:
+        it1 = read_fastq(r1_path)
+        it2 = read_fastq(r2_path)
+
+        while True:
+            if max_records is not None and stats["written_pairs"] >= max_records:
+                stats["changes"].append(f"tryb testowy: zapisano pierwsze {max_records} par")
+                break
+
+            rec1 = next(it1, None)
+            rec2 = next(it2, None)
+
+            if rec1 is None and rec2 is None:
+                break
+            if rec1 is None or rec2 is None:
+                stats["changes"].append("pominieto niesparowany odczyt na koncu pliku")
+                break
+
+            number = rec1[0]
+            repaired1, changes1 = repair_record(rec1[1], rec1[2], rec1[3], rec1[4])
+            repaired2, changes2 = repair_record(rec2[1], rec2[2], rec2[3], rec2[4])
+
+            if repaired1 is None or repaired2 is None:
+                stats["skipped_pairs"] += 1
+                stats["changes"].append(f"para {number}: pominieto pare z pustym rekordem")
+                continue
+
+            common_length = min(len(repaired1[1]), len(repaired2[1]))
+            repaired1 = (repaired1[0], repaired1[1][:common_length], repaired1[2], repaired1[3][:common_length])
+            repaired2 = (repaired2[0], repaired2[1][:common_length], repaired2[2], repaired2[3][:common_length])
+
+            if changes1 or changes2 or len(rec1[2]) != len(rec2[2]):
+                stats["changes"].append(f"para {number}: naprawiono i zsynchronizowano odczyty")
+
+            write_record(out1, repaired1)
+            write_record(out2, repaired2)
+            stats["written_pairs"] += 1
+
+    return stats
+
+
+def copy_valid_files_to_clean(files, clean_dir):
+    actions = []
+    for input_path in files:
+        input_path = Path(input_path)
+        output_path = Path(clean_dir) / input_path.name
+        shutil.copy2(input_path, output_path)
+        actions.append({"action": "copy", "input": str(input_path), "output": str(output_path)})
+    return actions
+
+
 def make_markdown(report):
     lines = [
         "# Raport kontroli poprawnosci plikow FASTQ",
@@ -171,6 +311,10 @@ def make_markdown(report):
             lines.append("Bledy:")
             lines += [f"- {error}" for error in item["errors"]]
             lines.append("")
+        if item["warnings"]:
+            lines.append("Ostrzezenia:")
+            lines += [f"- {warning}" for warning in item["warnings"]]
+            lines.append("")
 
     pair = report["illumina_pairs"]
     lines += [
@@ -187,6 +331,16 @@ def make_markdown(report):
         lines.append("Bledy:")
         lines += [f"- {error}" for error in pair["errors"]]
         lines.append("")
+    if pair["warnings"]:
+        lines.append("Ostrzezenia:")
+        lines += [f"- {warning}" for warning in pair["warnings"]]
+        lines.append("")
+
+    if report["clean_actions"]:
+        lines += ["## Dzialania na danych czystych", ""]
+        for action in report["clean_actions"]:
+            lines.append(f"- {action}")
+        lines.append("")
 
     return "\n".join(lines)
 
@@ -199,6 +353,8 @@ def main():
     parser.add_argument("--report-dir", default="results/read_validation")
     parser.add_argument("--clean-dir", default="data/clean")
     parser.add_argument("--max-records", type=int, default=None, help="Tryb testowy: sprawdza tylko podana liczbe rekordow z kazdego pliku.")
+    parser.add_argument("--copy-to-clean", action="store_true", help="Kopiuje poprawne pliki do data/clean po udanej walidacji.")
+    parser.add_argument("--repair-to-clean", action="store_true", help="Tworzy naprawione pliki FASTQ w data/clean do kolejnych etapow.")
     args = parser.parse_args()
 
     report_dir = Path(args.report_dir)
@@ -218,8 +374,31 @@ def main():
         "files": files,
         "illumina_pairs": pairs,
         "clean_directory": str(clean_dir),
-        "all_valid": all(item["valid"] for item in files) and pairs["valid"]
+        "all_valid": all(item["valid"] for item in files) and pairs["valid"],
+        "clean_actions": []
     }
+
+    input_files = [args.illumina_r1, args.illumina_r2, args.ont]
+
+    if args.copy_to_clean:
+        if report["all_valid"]:
+            actions = copy_valid_files_to_clean(input_files, clean_dir)
+            report["clean_actions"].extend([f"skopiowano {item['input']} do {item['output']}" for item in actions])
+        else:
+            report["clean_actions"].append("nie skopiowano plikow, poniewaz walidacja wykryla problemy")
+
+    if args.repair_to_clean:
+        pair_repair = repair_illumina_pairs(args.illumina_r1, args.illumina_r2, clean_dir, args.max_records)
+        ont_output = clean_output_path(args.ont, clean_dir)
+        ont_repair = repair_single_fastq(args.ont, ont_output, args.max_records)
+
+        report["repair"] = {
+            "illumina_pairs": pair_repair,
+            "ont": ont_repair
+        }
+        report["clean_actions"].append(f"zapisano naprawione R1: {pair_repair['output_r1']}")
+        report["clean_actions"].append(f"zapisano naprawione R2: {pair_repair['output_r2']}")
+        report["clean_actions"].append(f"zapisano naprawione ONT: {ont_repair['output']}")
 
     (report_dir / "read_validation_report.txt").write_text(make_markdown(report), encoding="utf-8")
     (report_dir / "read_validation_report.json").write_text(
@@ -231,11 +410,14 @@ def main():
         print(f"Dane sa poprawne. Raport zapisano w: {report_dir}")
         return 0
 
+    if args.repair_to_clean:
+        print(f"Wykryto problemy, ale zapisano naprawione pliki w: {clean_dir}")
+        print(f"Raport zapisano w: {report_dir}")
+        return 0
+
     print(f"Wykryto problemy. Raport zapisano w: {report_dir}")
     return 1
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
-
