@@ -24,7 +24,14 @@ Zalecane jest użycie środowiska Conda/Mamba zdefiniowanego w pliku envs/enviro
 Przykładowe przygotowanie środowiska:
 
     mamba env create -f envs/environment.yaml
-    mamba activate fungus-genome-assembly
+    mamba activate fungus-genome-pipeline
+
+
+Przed uruchomieniem właściwego programu do składania genomu trzeba aktywować środowisko z narzędziami bioinformatycznymi:
+
+    mamba activate fungus-genome-pipeline
+
+Dopiero po aktywacji środowiska należy uruchamiać GUI albo skrypty pipeline'u, ponieważ etapy assemblacji korzystają z narzędzi takich jak FastQC, MultiQC, fastp, Porechop, Filtlong, SPAdes, Flye, QUAST i BUSCO.
 
 ## Dane wejściowe
 
@@ -54,3 +61,4 @@ Surowych danych nie dodajemy do repozytorium Git. Należy je trzymać lokalnie w
 4. Korekcja złożenia.
 5. Polishing z użyciem Illumina.
 6. Ocena jakości złożenia przy użyciu QUAST i BUSCO.
+
