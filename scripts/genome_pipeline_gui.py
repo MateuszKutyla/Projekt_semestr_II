@@ -56,7 +56,7 @@ class GenomePipelineApp(tk.Tk):
         button_grid.columnconfigure(0, weight=1)
         button_grid.columnconfigure(1, weight=1)
 
-        self.add_module(button_grid, 0, 0, "Assemblacja genomu", "Kontrola danych, czyszczenie, składanie i polishing genomu.", self.run_assembly)
+        self.add_module(button_grid, 0, 0, "Assemblacja de novo", "Wybór typu assemblacji: Illumina, ONT albo hybrydowa.", self.open_denovo_window)
         self.add_module(button_grid, 0, 1, "Predykcja genów", "Moduł do wykrywania genów w złożonym genomie.", self.run_gene_prediction)
         self.add_module(button_grid, 1, 0, "Annotacja funkcjonalna", "Moduł do przypisywania funkcji przewidywanym genom i białkom.", self.run_annotation)
         self.add_module(button_grid, 1, 1, "Predykcja hydrolaz", "Moduł do wyszukiwania potencjalnych enzymów hydrolitycznych.", self.run_hydrolases)
@@ -82,6 +82,52 @@ class GenomePipelineApp(tk.Tk):
         ttk.Label(frame, text=description, wraplength=390).pack(anchor="w", pady=(6, 14))
         ttk.Button(frame, text=title, command=command).pack(fill="x")
 
+    def open_denovo_window(self):
+        window = tk.Toplevel(self)
+        window.title("Assemblacja de novo")
+        window.geometry("720x430")
+        window.minsize(640, 380)
+        window.transient(self)
+
+        frame = ttk.Frame(window, padding=20)
+        frame.pack(fill="both", expand=True)
+
+        ttk.Label(frame, text="Assemblacja de novo", font=("Segoe UI", 18, "bold")).pack(anchor="w")
+        ttk.Label(
+            frame,
+            text="Wybierz typ assemblacji. Na tym etapie przyciski tworzą rdzeń logiki; właściwe komendy zostaną podłączone później.",
+            wraplength=650
+        ).pack(anchor="w", pady=(6, 18))
+
+        self.add_assembly_option(
+            frame,
+            "Na bazie odczytów Illumina",
+            "Narzędzie: SPAdes. Ten tryb będzie używał sparowanych odczytów Illumina R1/R2.",
+            self.run_illumina_assembly
+        )
+
+        self.add_assembly_option(
+            frame,
+            "Na bazie odczytów ONT",
+            "Narzędzie: Flye. Ten tryb będzie używał długich odczytów Oxford Nanopore.",
+            self.run_ont_assembly
+        )
+
+        self.add_assembly_option(
+            frame,
+            "Assemblacja hybrydowa",
+            "Tryb wykorzystujący dwa rodzaje odczytów: Illumina oraz ONT.",
+            self.run_hybrid_assembly
+        )
+
+    def add_assembly_option(self, parent, title, description, command):
+        box = ttk.Frame(parent, padding=12, relief="ridge")
+        box.pack(fill="x", pady=6)
+
+        ttk.Label(box, text=title, font=("Segoe UI", 12, "bold")).pack(anchor="w")
+        ttk.Label(box, text=description, wraplength=620).pack(anchor="w", pady=(4, 8))
+        ttk.Button(box, text="Wybierz", command=command).pack(anchor="e")
+
     def choose_project_dir(self):
         selected = filedialog.askdirectory(initialdir=self.project_dir.get(), title="Wybierz folder projektu")
         if selected:
@@ -98,12 +144,22 @@ class GenomePipelineApp(tk.Tk):
         self.log.delete("1.0", "end")
         self.status_text.set("Log wyczyszczony")
 
-    def placeholder(self, module_name):
-        self.write_log(f"Wybrano moduł: {module_name}. Funkcja zostanie dodana później.")
-        messagebox.showinfo(module_name, "Rdzeń interfejsu działa. Funkcja tego modułu zostanie dodana w kolejnym etapie.")
+    def placeholder(self, module_name, tool_name=None):
+        if tool_name:
+            self.write_log(f"Wybrano: {module_name}. Planowane narzędzie: {tool_name}.")
+            messagebox.showinfo(module_name, f"Wybrano moduł: {module_name}\nPlanowane narzędzie: {tool_name}\nFunkcja zostanie podłączona w kolejnym etapie.")
+        else:
+            self.write_log(f"Wybrano moduł: {module_name}. Funkcja zostanie dodana później.")
+            messagebox.showinfo(module_name, "Rdzeń interfejsu działa. Funkcja tego modułu zostanie dodana w kolejnym etapie.")
 
-    def run_assembly(self):
-        self.placeholder("Assemblacja genomu")
+    def run_illumina_assembly(self):
+        self.placeholder("Assemblacja de novo na bazie odczytów Illumina", "SPAdes")
+
+    def run_ont_assembly(self):
+        self.placeholder("Assemblacja de novo na bazie odczytów ONT", "Flye")
+
+    def run_hybrid_assembly(self):
+        self.placeholder("Assemblacja hybrydowa Illumina + ONT", "SPAdes/Flye oraz integracja odczytów Illumina i ONT")
 
     def run_gene_prediction(self):
         self.placeholder("Predykcja genów")
