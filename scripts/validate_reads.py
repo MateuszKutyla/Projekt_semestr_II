@@ -30,7 +30,7 @@ def read_fastq(path):
             yield number, header.rstrip(), seq.rstrip(), plus.rstrip(), qual.rstrip()
 
 
-def validate_fastq(path, label, max_errors=20):
+def validate_fastq(path, label, max_errors=20, max_records=None):
     result = {
         "label": label,
         "path": str(path),
@@ -50,6 +50,9 @@ def validate_fastq(path, label, max_errors=20):
 
     try:
         for number, header, seq, plus, qual in read_fastq(path):
+            if max_records is not None and result["records"] >= max_records:
+                result["warnings"].append(f"Tryb testowy: sprawdzono pierwsze {max_records} rekordow.")
+                break
             if len(result["errors"]) >= max_errors:
                 result["warnings"].append(f"Przerwano po {max_errors} bledach.")
                 break
@@ -91,7 +94,7 @@ def validate_fastq(path, label, max_errors=20):
     return result
 
 
-def validate_pairs(r1, r2, max_errors=20):
+def validate_pairs(r1, r2, max_errors=20, max_records=None):
     result = {
         "checked_pairs": 0,
         "read_count_match": True,
@@ -104,6 +107,9 @@ def validate_pairs(r1, r2, max_errors=20):
     it2 = read_fastq(r2)
 
     while True:
+        if max_records is not None and result["checked_pairs"] >= max_records:
+            result["warnings"].append(f"Tryb testowy: sprawdzono pierwsze {max_records} par odczytow.")
+            break
         rec1 = next(it1, None)
         rec2 = next(it2, None)
 
@@ -192,6 +198,7 @@ def main():
     parser.add_argument("--ont", required=True)
     parser.add_argument("--report-dir", default="results/read_validation")
     parser.add_argument("--clean-dir", default="data/clean")
+    parser.add_argument("--max-records", type=int, default=None, help="Tryb testowy: sprawdza tylko podana liczbe rekordow z kazdego pliku.")
     args = parser.parse_args()
 
     report_dir = Path(args.report_dir)
@@ -200,11 +207,11 @@ def main():
     clean_dir.mkdir(parents=True, exist_ok=True)
 
     files = [
-        validate_fastq(args.illumina_r1, "Illumina R1"),
-        validate_fastq(args.illumina_r2, "Illumina R2"),
-        validate_fastq(args.ont, "ONT")
+        validate_fastq(args.illumina_r1, "Illumina R1", max_records=args.max_records),
+        validate_fastq(args.illumina_r2, "Illumina R2", max_records=args.max_records),
+        validate_fastq(args.ont, "ONT", max_records=args.max_records)
     ]
-    pairs = validate_pairs(args.illumina_r1, args.illumina_r2)
+    pairs = validate_pairs(args.illumina_r1, args.illumina_r2, max_records=args.max_records)
 
     report = {
         "created_at": datetime.now().isoformat(timespec="seconds"),
@@ -230,3 +237,4 @@ def main():
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
