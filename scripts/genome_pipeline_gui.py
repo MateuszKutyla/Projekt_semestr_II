@@ -254,24 +254,46 @@ class GenomePipelineApp(tk.Tk):
         combo = ttk.Combobox(frame, textvariable=selected_species, values=species_list, state="readonly")
         combo.pack(fill="x", pady=(6, 18))
 
-        ttk.Label(
-            frame,
-            text="Wejście: data/assemble_genome/latest_assembly.fasta",
-            wraplength=560
-        ).pack(anchor="w", pady=(0, 14))
+        genome_path = tk.StringVar(value=str(self.project_path("data/assemble_genome/latest_assembly.fasta")))
+
+        ttk.Label(frame, text="Plik wejściowy FASTA ze złożonym genomem:").pack(anchor="w")
+        genome_row = ttk.Frame(frame)
+        genome_row.pack(fill="x", pady=(6, 14))
+
+        ttk.Entry(genome_row, textvariable=genome_path).pack(side="left", fill="x", expand=True)
+        ttk.Button(
+            genome_row,
+            text="Wybierz",
+            command=lambda: self.choose_genome_file(genome_path)
+        ).pack(side="left", padx=(8, 0))
 
         ttk.Button(
             frame,
             text="Uruchom predykcję genów",
-            command=lambda: self.run_gene_prediction_with_species(selected_species.get())
+            command=lambda: self.run_gene_prediction_with_species(selected_species.get(), genome_path.get())
         ).pack(anchor="e")
 
-    def run_gene_prediction_with_species(self, species):
+    def choose_genome_file(self, genome_path):
+        selected = filedialog.askopenfilename(
+            initialdir=str(self.project_path("data/assemble_genome")),
+            title="Wybierz plik FASTA ze złożonym genomem",
+            filetypes=[
+                ("FASTA", "*.fasta *.fa *.fna"),
+                ("Wszystkie pliki", "*.*")
+            ]
+        )
+        if selected:
+            genome_path.set(selected)
+            self.write_log(f"Wybrano plik genomu do predykcji genów: {selected}")
+
+    def run_gene_prediction_with_species(self, species, genome_path):
         command = [
             "python3",
             "scripts/run_gene_prediction.py",
             "--species",
-            species
+            species,
+            "--genome",
+            genome_path
         ]
         self.run_command(f"Predykcja genów - Augustus ({species})", command)
 
@@ -292,5 +314,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
