@@ -8,6 +8,24 @@ Złożenie genomu grzyba na podstawie danych sekwencjonowania Illumina oraz Oxfo
 
 Celem projektu jest przygotowanie powtarzalnego pipeline'u bioinformatycznego do kontroli jakości odczytów, oczyszczania danych, składania genomu, polishingu oraz oceny jakości otrzymanego złożenia.
 
+## System operacyjny
+
+Wszystkie etapy analizy są przeznaczone do uruchamiania w systemie Linux. Komendy w projekcie będą zapisywane w składni bash, a ścieżki do plików będą podawane w formacie linuxowym, np. data/raw/illumina_R1.fastq.gz.
+
+Projekt można uruchamiać na przykład w:
+
+- natywnym systemie Linux,
+- WSL na Windowsie,
+- maszynie wirtualnej z Linuxem,
+- serwerze obliczeniowym z Linuxem.
+
+Zalecane jest użycie środowiska Conda/Mamba zdefiniowanego w pliku envs/environment.yaml.
+
+Przykładowe przygotowanie środowiska:
+
+    mamba env create -f envs/environment.yaml
+    mamba activate fungus-genome-assembly
+
 ## Dane wejściowe
 
 Projekt zakłada wykorzystanie:
@@ -15,18 +33,18 @@ Projekt zakłada wykorzystanie:
 - krótkich odczytów Illumina paired-end,
 - długich odczytów ONT.
 
-Surowych danych nie dodajemy do repozytorium Git. Należy je trzymać lokalnie w `data/raw/`.
+Surowych danych nie dodajemy do repozytorium Git. Należy je trzymać lokalnie w data/raw/.
 
 ## Struktura repozytorium
 
-- `config/` - konfiguracja projektu
-- `data/raw/` - surowe dane sekwencjonowania
-- `data/processed/` - oczyszczone dane
-- `docs/` - dokumentacja i opis pipeline'u
-- `envs/` - środowisko Conda/Mamba
-- `results/` - wyniki analiz
-- `scripts/` - skrypty pomocnicze
-- `workflow/` - workflow analityczny
+- config/ - konfiguracja projektu
+- data/raw/ - surowe dane sekwencjonowania
+- data/processed/ - oczyszczone dane
+- docs/ - dokumentacja i opis pipeline'u
+- envs/ - środowisko Conda/Mamba
+- results/ - wyniki analiz
+- scripts/ - skrypty pomocnicze
+- workflow/ - workflow analityczny
 
 ## Plan analizy
 
