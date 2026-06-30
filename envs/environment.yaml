@@ -1,19 +1,36 @@
-﻿name: fungus-genome-assembly
+﻿name: fungus-genome-pipeline
+
 channels:
   - conda-forge
   - bioconda
+  - defaults
+
 dependencies:
+  # Core
   - python=3.11
+  - tk
+
+  # Read quality control and filtering
   - fastqc
   - multiqc
   - nanoplot
   - fastp
   - filtlong
+
+  # De novo assembly
+  - spades
   - flye
+
+  # Mapping and polishing
   - minimap2
-  - racon
   - bwa
   - samtools
+  - racon
   - pilon
+
+  # Assembly quality assessment
   - quast
   - busco
+
+  # General utilities
+  - seqkit
