@@ -1,0 +1,21 @@
+﻿Graficzny rdzeń projektu
+========================
+
+Plik scripts/genome_pipeline_gui.py zawiera podstawowy interfejs programu.
+
+Moduły w interfejsie:
+
+- Assemblacja genomu
+- Predykcja genów
+- Annotacja funkcjonalna
+- Predykcja hydrolaz
+
+Na tym etapie przyciski są szkieletem. Każdy zapisuje informację w logu i pokazuje komunikat. W kolejnych etapach do przycisków będą podłączane właściwe funkcje analizy.
+
+Uruchomienie:
+
+python scripts\genome_pipeline_gui.py
+
+W Linuxie:
+
+python3 scripts/genome_pipeline_gui.py
