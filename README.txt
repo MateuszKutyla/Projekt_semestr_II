@@ -56,9 +56,10 @@ Surowych danych nie dodajemy do repozytorium Git. Należy je trzymać lokalnie w
 ## Plan analizy
 
 1. Filtracja programem uruchamianym z konsoli: scripts/validate_reads.py.
-2. Assemblacja genomu.
-3. Predykcja genów.
-4. Annotacja funkcjonalna.
-5. Predykcja hydrolaz.
+2. Assemblacja genomu w programie GUI: scripts/genome_pipeline_gui.py.
+3. Predykcja genów w programie GUI: scripts/genome_pipeline_gui.py.
+4. Annotacja funkcjonalna w programie GUI: scripts/genome_pipeline_gui.py.
+5. Predykcja hydrolaz w programie GUI: scripts/genome_pipeline_gui.py.
+
 
 
