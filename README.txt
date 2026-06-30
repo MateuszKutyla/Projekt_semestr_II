@@ -55,10 +55,10 @@ Surowych danych nie dodajemy do repozytorium Git. Należy je trzymać lokalnie w
 
 ## Plan analizy
 
-1. Kontrola jakości Illumina i ONT.
-2. Oczyszczenie i filtrowanie odczytów.
-3. Złożenie genomu z odczytów ONT.
-4. Korekcja złożenia.
-5. Polishing z użyciem Illumina.
-6. Ocena jakości złożenia przy użyciu QUAST i BUSCO.
+1. Filtracja programem uruchamianym z konsoli: scripts/validate_reads.py.
+2. Assemblacja genomu.
+3. Predykcja genów.
+4. Annotacja funkcjonalna.
+5. Predykcja hydrolaz.
+
 
