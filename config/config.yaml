@@ -1,8 +1,142 @@
-﻿sample_name: fungus_sample
+﻿project:
+  sample_name: CK982
+  organism_group: fungi
+  threads: 8
 
 reads:
-  illumina_r1: data/raw/illumina_R1.fastq.gz
-  illumina_r2: data/raw/illumina_R2.fastq.gz
-  ont: data/raw/ont_reads.fastq.gz
+  illumina_r1: data/raw/Unknown_CK982-002R0001_1.fq.gz
+  illumina_r2: data/raw/Unknown_CK982-002R0001_2.fq.gz
+  ont: data/raw/ONT_CK982-001N0001_raw.fq.gz
 
-threads: 8
+directories:
+  raw: data/raw
+  clean: data/clean
+  assembled_genome: data/assemble_genome
+  predicted_genes: data/predicted_genes
+  functional_annotation: data/functional_annotation
+  hydrolases: data/hydrolases
+  databases: data/databases
+  results: results
+  logs: logs
+
+read_validation:
+  program: scripts/validate_reads.py
+  max_records: null
+  copy_to_clean: true
+  repair_to_clean: false
+  report_dir: results/read_validation
+
+assembly:
+  program: scripts/run_denovo_assembly.py
+  mode: hybrid
+  busco_lineage: fungi_odb10
+
+  quality_control:
+    illumina_before:
+      tools:
+        - fastqc
+        - multiqc
+    illumina_after:
+      tools:
+        - fastqc
+        - multiqc
+    ont_before:
+      tools:
+        - nanoplot
+    ont_after:
+      tools:
+        - nanoplot
+
+  cleaning:
+    illumina:
+      tool: fastp
+      clean_r1: data/clean/illumina_R1.clean.fq.gz
+      clean_r2: data/clean/illumina_R2.clean.fq.gz
+    ont:
+      adapter_removal: porechop
+      filtering: filtlong
+      min_length: 1000
+      clean_reads: data/clean/ont.clean.fq
+
+  illumina:
+    assembler: spades
+    output_dir: results/assembly/spades_illumina
+    final_contigs: results/assembly/spades_illumina/contigs.fasta
+
+  ont:
+    assembler: flye
+    output_dir: results/assembly/flye_ont
+    final_contigs: results/assembly/flye_ont/assembly.fasta
+
+  hybrid:
+    assembler: spades
+    output_dir: results/assembly/spades_hybrid
+    final_contigs: results/assembly/spades_hybrid/contigs.fasta
+
+  assembly_quality:
+    tools:
+      - quast
+      - busco
+    output_dir: results/assembly_qc
+
+  published_genome:
+    latest: data/assemble_genome/latest_assembly.fasta
+    illumina: data/assemble_genome/spades_illumina.fasta
+    ont: data/assemble_genome/flye_ont.fasta
+    hybrid: data/assemble_genome/spades_hybrid.fasta
+
+gene_prediction:
+  program: scripts/run_gene_prediction.py
+  tool: augustus
+  genome: data/assemble_genome/latest_assembly.fasta
+  species: aspergillus_nidulans
+  no_species: false
+  allow_custom_species: true
+  output_dir: results/gene_prediction/augustus
+  report: results/gene_prediction/augustus/gene_prediction_report.txt
+  published_gff: data/predicted_genes/predicted_genes.gff3
+  published_proteins: data/predicted_genes/predicted_proteins.faa
+
+functional_annotation:
+  program: scripts/run_functional_annotation.py
+  proteins: data/predicted_genes/predicted_proteins.faa
+  output_dir: results/functional_annotation
+  report: results/functional_annotation/functional_annotation_report.txt
+
+  tools:
+    diamond: true
+    eggnog_mapper: true
+    interproscan: true
+
+  databases:
+    diamond_db: data/databases/diamond/uniprot_sprot.dmnd
+
+hydrolase_prediction:
+  program: scripts/run_hydrolase_prediction.py
+  proteins: data/predicted_genes/predicted_proteins.faa
+  output_dir: results/hydrolase_prediction
+  report: results/hydrolase_prediction/hydrolase_prediction_report.txt
+  combined_output: data/hydrolases/predicted_hydrolases.tsv
+
+  tools:
+    dbcan: true
+    hmmer: true
+    diamond: true
+    signalp: true
+    deeptmhmm: true
+
+  databases:
+    dbcan_db: data/databases/dbcan
+    hmm_db: data/databases/hmmer/Pfam-A.hmm
+    diamond_db: data/databases/diamond/hydrolases.dmnd
+
+full_pipeline:
+  program: scripts/run_full_pipeline.py
+  log: logs/full_pipeline.log
+
+  enabled_steps:
+    read_validation: true
+    assembly: true
+    gene_prediction: true
+    functional_annotation: true
+    hydrolase_prediction: true
