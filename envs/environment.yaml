@@ -37,8 +37,13 @@ dependencies:
   # General utilities
   - seqkit
   - diamond
+  - hmmer
+  - dbcan
+  - signalp
+  - biolib
   - eggnog-mapper
   - interproscan
+
 
 
 

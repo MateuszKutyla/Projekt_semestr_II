@@ -451,8 +451,120 @@ class GenomePipelineApp(tk.Tk):
     def run_annotation(self):
         self.open_functional_annotation_window()
 
+    def open_hydrolase_prediction_window(self):
+        window = tk.Toplevel(self)
+        window.title("Predykcja hydrolaz")
+        window.geometry("780x560")
+        window.minsize(700, 500)
+        window.transient(self)
+
+        frame = ttk.Frame(window, padding=20)
+        frame.pack(fill="both", expand=True)
+
+        ttk.Label(frame, text="Predykcja hydrolaz", font=("Segoe UI", 18, "bold")).pack(anchor="w")
+        ttk.Label(
+            frame,
+            text="Wybierz narzędzie do predykcji hydrolaz lub uruchom pełny zestaw analiz.",
+            wraplength=720
+        ).pack(anchor="w", pady=(6, 16))
+
+        proteins_path = tk.StringVar(value=str(self.project_path("data/predicted_genes/predicted_proteins.faa")))
+        selected_tool = tk.StringVar(value="all")
+        hmm_db = tk.StringVar(value="")
+        diamond_db = tk.StringVar(value="")
+
+        ttk.Label(frame, text="Plik wejściowy FASTA z białkami:").pack(anchor="w")
+        proteins_row = ttk.Frame(frame)
+        proteins_row.pack(fill="x", pady=(6, 12))
+
+        ttk.Entry(proteins_row, textvariable=proteins_path).pack(side="left", fill="x", expand=True)
+        ttk.Button(
+            proteins_row,
+            text="Wybierz",
+            command=lambda: self.choose_proteins_file(proteins_path)
+        ).pack(side="left", padx=(8, 0))
+
+        ttk.Label(frame, text="Narzędzie:").pack(anchor="w")
+        tool_combo = ttk.Combobox(
+            frame,
+            textvariable=selected_tool,
+            values=["all", "dbcan", "hmmer", "diamond", "signalp", "deeptmhmm"],
+            state="readonly"
+        )
+        tool_combo.pack(fill="x", pady=(6, 12))
+
+        ttk.Label(frame, text="Baza HMM dla HMMER, wymagana dla HMMER lub all:").pack(anchor="w")
+        hmm_row = ttk.Frame(frame)
+        hmm_row.pack(fill="x", pady=(6, 12))
+
+        ttk.Entry(hmm_row, textvariable=hmm_db).pack(side="left", fill="x", expand=True)
+        ttk.Button(
+            hmm_row,
+            text="Wybierz",
+            command=lambda: self.choose_hmm_database(hmm_db)
+        ).pack(side="left", padx=(8, 0))
+
+        ttk.Label(frame, text="Baza DIAMOND hydrolaz, wymagana dla DIAMOND lub all:").pack(anchor="w")
+        diamond_row = ttk.Frame(frame)
+        diamond_row.pack(fill="x", pady=(6, 12))
+
+        ttk.Entry(diamond_row, textvariable=diamond_db).pack(side="left", fill="x", expand=True)
+        ttk.Button(
+            diamond_row,
+            text="Wybierz",
+            command=lambda: self.choose_diamond_database(diamond_db)
+        ).pack(side="left", padx=(8, 0))
+
+        ttk.Button(
+            frame,
+            text="Uruchom predykcję hydrolaz",
+            command=lambda: self.run_hydrolase_prediction_tool(
+                selected_tool.get(),
+                proteins_path.get(),
+                hmm_db.get(),
+                diamond_db.get()
+            )
+        ).pack(anchor="e", pady=(8, 0))
+
+    def choose_hmm_database(self, hmm_db):
+        selected = filedialog.askopenfilename(
+            initialdir=str(self.project_path("data")),
+            title="Wybierz bazę HMM",
+            filetypes=[
+                ("HMM database", "*.hmm"),
+                ("Wszystkie pliki", "*.*")
+            ]
+        )
+        if selected:
+            hmm_db.set(selected)
+            self.write_log(f"Wybrano bazę HMM: {selected}")
+
+    def run_hydrolase_prediction_tool(self, tool, proteins_path, hmm_db, diamond_db):
+        command = [
+            "python3",
+            "scripts/run_hydrolase_prediction.py",
+            "--tool",
+            tool,
+            "--proteins",
+            proteins_path
+        ]
+
+        if tool in ["hmmer", "all"]:
+            if not hmm_db.strip():
+                messagebox.showerror("HMMER", "Dla HMMER albo trybu all trzeba wskazać bazę HMM.")
+                return
+            command.extend(["--hmm-db", hmm_db.strip()])
+
+        if tool in ["diamond", "all"]:
+            if not diamond_db.strip():
+                messagebox.showerror("DIAMOND", "Dla DIAMOND albo trybu all trzeba wskazać bazę .dmnd.")
+                return
+            command.extend(["--diamond-db", diamond_db.strip()])
+
+        self.run_command(f"Predykcja hydrolaz - {tool}", command)
+
     def run_hydrolases(self):
-        self.placeholder("Predykcja hydrolaz")
+        self.open_hydrolase_prediction_window()
 
 
 def main():
@@ -462,6 +574,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
