@@ -16,3 +16,6 @@ data/clean/*
 
 data/assemble_genome/*
 !data/assemble_genome/.gitkeep
+
+data/predicted_genes/*
+!data/predicted_genes/.gitkeep
