@@ -454,8 +454,8 @@ class GenomePipelineApp(tk.Tk):
     def open_hydrolase_prediction_window(self):
         window = tk.Toplevel(self)
         window.title("Predykcja hydrolaz")
-        window.geometry("780x560")
-        window.minsize(700, 500)
+        window.geometry("820x640")
+        window.minsize(740, 560)
         window.transient(self)
 
         frame = ttk.Frame(window, padding=20)
@@ -464,14 +464,19 @@ class GenomePipelineApp(tk.Tk):
         ttk.Label(frame, text="Predykcja hydrolaz", font=("Segoe UI", 18, "bold")).pack(anchor="w")
         ttk.Label(
             frame,
-            text="Wybierz narzędzie do predykcji hydrolaz lub uruchom pełny zestaw analiz.",
-            wraplength=720
+            text="Wybierz analizy, które mają zostać uruchomione dla przewidywanych białek.",
+            wraplength=760
         ).pack(anchor="w", pady=(6, 16))
 
         proteins_path = tk.StringVar(value=str(self.project_path("data/predicted_genes/predicted_proteins.faa")))
-        selected_tool = tk.StringVar(value="all")
         hmm_db = tk.StringVar(value="")
         diamond_db = tk.StringVar(value="")
+
+        use_dbcan = tk.BooleanVar(value=True)
+        use_hmmer = tk.BooleanVar(value=True)
+        use_diamond = tk.BooleanVar(value=True)
+        use_signalp = tk.BooleanVar(value=True)
+        use_deeptmhmm = tk.BooleanVar(value=True)
 
         ttk.Label(frame, text="Plik wejściowy FASTA z białkami:").pack(anchor="w")
         proteins_row = ttk.Frame(frame)
@@ -484,16 +489,36 @@ class GenomePipelineApp(tk.Tk):
             command=lambda: self.choose_proteins_file(proteins_path)
         ).pack(side="left", padx=(8, 0))
 
-        ttk.Label(frame, text="Narzędzie:").pack(anchor="w")
-        tool_combo = ttk.Combobox(
-            frame,
-            textvariable=selected_tool,
-            values=["all", "dbcan", "hmmer", "diamond", "signalp", "deeptmhmm"],
-            state="readonly"
-        )
-        tool_combo.pack(fill="x", pady=(6, 12))
+        options_box = ttk.Frame(frame, padding=12, relief="ridge")
+        options_box.pack(fill="x", pady=(6, 14))
 
-        ttk.Label(frame, text="Baza HMM dla HMMER, wymagana dla HMMER lub all:").pack(anchor="w")
+        ttk.Label(options_box, text="Analizy do uruchomienia:", font=("Segoe UI", 11, "bold")).pack(anchor="w")
+        ttk.Checkbutton(options_box, text="dbCAN - predykcja CAZymes/hydrolaz węglowodanowych", variable=use_dbcan).pack(anchor="w", pady=(6, 0))
+        ttk.Checkbutton(options_box, text="HMMER - wyszukiwanie domen w bazie HMM", variable=use_hmmer).pack(anchor="w")
+        ttk.Checkbutton(options_box, text="DIAMOND - porównanie z bazą sekwencji hydrolaz", variable=use_diamond).pack(anchor="w")
+        ttk.Checkbutton(options_box, text="SignalP - przewidywanie peptydów sygnałowych", variable=use_signalp).pack(anchor="w")
+        ttk.Checkbutton(options_box, text="DeepTMHMM - przewidywanie domen transbłonowych", variable=use_deeptmhmm).pack(anchor="w")
+
+        select_row = ttk.Frame(options_box)
+        select_row.pack(fill="x", pady=(8, 0))
+        ttk.Button(
+            select_row,
+            text="Zaznacz wszystkie",
+            command=lambda: self.set_hydrolase_options(
+                [use_dbcan, use_hmmer, use_diamond, use_signalp, use_deeptmhmm],
+                True
+            )
+        ).pack(side="left")
+        ttk.Button(
+            select_row,
+            text="Odznacz wszystkie",
+            command=lambda: self.set_hydrolase_options(
+                [use_dbcan, use_hmmer, use_diamond, use_signalp, use_deeptmhmm],
+                False
+            )
+        ).pack(side="left", padx=(8, 0))
+
+        ttk.Label(frame, text="Baza HMM dla HMMER:").pack(anchor="w")
         hmm_row = ttk.Frame(frame)
         hmm_row.pack(fill="x", pady=(6, 12))
 
@@ -504,7 +529,7 @@ class GenomePipelineApp(tk.Tk):
             command=lambda: self.choose_hmm_database(hmm_db)
         ).pack(side="left", padx=(8, 0))
 
-        ttk.Label(frame, text="Baza DIAMOND hydrolaz, wymagana dla DIAMOND lub all:").pack(anchor="w")
+        ttk.Label(frame, text="Baza DIAMOND hydrolaz:").pack(anchor="w")
         diamond_row = ttk.Frame(frame)
         diamond_row.pack(fill="x", pady=(6, 12))
 
@@ -517,14 +542,22 @@ class GenomePipelineApp(tk.Tk):
 
         ttk.Button(
             frame,
-            text="Uruchom predykcję hydrolaz",
-            command=lambda: self.run_hydrolase_prediction_tool(
-                selected_tool.get(),
+            text="Uruchom wybrane analizy hydrolaz",
+            command=lambda: self.run_selected_hydrolase_predictions(
                 proteins_path.get(),
                 hmm_db.get(),
-                diamond_db.get()
+                diamond_db.get(),
+                use_dbcan.get(),
+                use_hmmer.get(),
+                use_diamond.get(),
+                use_signalp.get(),
+                use_deeptmhmm.get()
             )
         ).pack(anchor="e", pady=(8, 0))
+
+    def set_hydrolase_options(self, variables, value):
+        for variable in variables:
+            variable.set(value)
 
     def choose_hmm_database(self, hmm_db):
         selected = filedialog.askopenfilename(
@@ -539,30 +572,57 @@ class GenomePipelineApp(tk.Tk):
             hmm_db.set(selected)
             self.write_log(f"Wybrano bazę HMM: {selected}")
 
-    def run_hydrolase_prediction_tool(self, tool, proteins_path, hmm_db, diamond_db):
-        command = [
-            "python3",
-            "scripts/run_hydrolase_prediction.py",
-            "--tool",
-            tool,
-            "--proteins",
-            proteins_path
-        ]
+    def run_selected_hydrolase_predictions(
+        self,
+        proteins_path,
+        hmm_db,
+        diamond_db,
+        use_dbcan,
+        use_hmmer,
+        use_diamond,
+        use_signalp,
+        use_deeptmhmm
+    ):
+        selected_tools = []
+        if use_dbcan:
+            selected_tools.append("dbcan")
+        if use_hmmer:
+            selected_tools.append("hmmer")
+        if use_diamond:
+            selected_tools.append("diamond")
+        if use_signalp:
+            selected_tools.append("signalp")
+        if use_deeptmhmm:
+            selected_tools.append("deeptmhmm")
 
-        if tool in ["hmmer", "all"]:
-            if not hmm_db.strip():
-                messagebox.showerror("HMMER", "Dla HMMER albo trybu all trzeba wskazać bazę HMM.")
-                return
-            command.extend(["--hmm-db", hmm_db.strip()])
+        if not selected_tools:
+            messagebox.showerror("Predykcja hydrolaz", "Wybierz przynajmniej jedną analizę.")
+            return
 
-        if tool in ["diamond", "all"]:
-            if not diamond_db.strip():
-                messagebox.showerror("DIAMOND", "Dla DIAMOND albo trybu all trzeba wskazać bazę .dmnd.")
-                return
-            command.extend(["--diamond-db", diamond_db.strip()])
+        if "hmmer" in selected_tools and not hmm_db.strip():
+            messagebox.showerror("HMMER", "Dla HMMER trzeba wskazać bazę HMM.")
+            return
 
-        self.run_command(f"Predykcja hydrolaz - {tool}", command)
+        if "diamond" in selected_tools and not diamond_db.strip():
+            messagebox.showerror("DIAMOND", "Dla DIAMOND trzeba wskazać bazę .dmnd.")
+            return
 
+        for tool in selected_tools:
+            command = [
+                "python3",
+                "scripts/run_hydrolase_prediction.py",
+                "--tool",
+                tool,
+                "--proteins",
+                proteins_path
+            ]
+
+            if tool == "hmmer":
+                command.extend(["--hmm-db", hmm_db.strip()])
+            if tool == "diamond":
+                command.extend(["--diamond-db", diamond_db.strip()])
+
+            self.run_command(f"Predykcja hydrolaz - {tool}", command)
     def run_hydrolases(self):
         self.open_hydrolase_prediction_window()
 
@@ -574,6 +634,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
