@@ -1,4 +1,4 @@
-﻿Projekt semestralny II
+﻿Pipeline do składania i analizy funkcjonalnej genomu grzyba
 ======================
 
 Temat
