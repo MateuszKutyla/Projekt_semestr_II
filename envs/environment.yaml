@@ -36,5 +36,9 @@ dependencies:
 
   # General utilities
   - seqkit
+  - diamond
+  - eggnog-mapper
+  - interproscan
+
 
 

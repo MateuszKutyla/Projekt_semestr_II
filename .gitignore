@@ -19,3 +19,6 @@ data/assemble_genome/*
 
 data/predicted_genes/*
 !data/predicted_genes/.gitkeep
+
+data/functional_annotation/*
+!data/functional_annotation/.gitkeep

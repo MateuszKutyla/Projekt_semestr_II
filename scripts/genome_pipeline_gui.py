@@ -315,8 +315,114 @@ class GenomePipelineApp(tk.Tk):
     def run_gene_prediction(self):
         self.open_gene_prediction_window()
 
+    def open_functional_annotation_window(self):
+        window = tk.Toplevel(self)
+        window.title("Annotacja funkcjonalna")
+        window.geometry("760x500")
+        window.minsize(680, 440)
+        window.transient(self)
+
+        frame = ttk.Frame(window, padding=20)
+        frame.pack(fill="both", expand=True)
+
+        ttk.Label(frame, text="Annotacja funkcjonalna", font=("Segoe UI", 18, "bold")).pack(anchor="w")
+        ttk.Label(
+            frame,
+            text="Wybierz narzędzie do annotacji funkcjonalnej przewidywanych białek.",
+            wraplength=700
+        ).pack(anchor="w", pady=(6, 16))
+
+        proteins_path = tk.StringVar(value=str(self.project_path("data/predicted_genes/predicted_proteins.faa")))
+        selected_tool = tk.StringVar(value="diamond")
+        diamond_db = tk.StringVar(value="")
+
+        ttk.Label(frame, text="Plik wejściowy FASTA z białkami:").pack(anchor="w")
+        proteins_row = ttk.Frame(frame)
+        proteins_row.pack(fill="x", pady=(6, 14))
+
+        ttk.Entry(proteins_row, textvariable=proteins_path).pack(side="left", fill="x", expand=True)
+        ttk.Button(
+            proteins_row,
+            text="Wybierz",
+            command=lambda: self.choose_proteins_file(proteins_path)
+        ).pack(side="left", padx=(8, 0))
+
+        ttk.Label(frame, text="Narzędzie:").pack(anchor="w")
+        tool_combo = ttk.Combobox(
+            frame,
+            textvariable=selected_tool,
+            values=["diamond", "eggnog", "interproscan"],
+            state="readonly"
+        )
+        tool_combo.pack(fill="x", pady=(6, 14))
+
+        ttk.Label(frame, text="Baza DIAMOND, wymagana tylko dla DIAMOND:").pack(anchor="w")
+        db_row = ttk.Frame(frame)
+        db_row.pack(fill="x", pady=(6, 14))
+
+        ttk.Entry(db_row, textvariable=diamond_db).pack(side="left", fill="x", expand=True)
+        ttk.Button(
+            db_row,
+            text="Wybierz",
+            command=lambda: self.choose_diamond_database(diamond_db)
+        ).pack(side="left", padx=(8, 0))
+
+        ttk.Button(
+            frame,
+            text="Uruchom annotację funkcjonalną",
+            command=lambda: self.run_functional_annotation_tool(
+                selected_tool.get(),
+                proteins_path.get(),
+                diamond_db.get()
+            )
+        ).pack(anchor="e")
+
+    def choose_proteins_file(self, proteins_path):
+        selected = filedialog.askopenfilename(
+            initialdir=str(self.project_path("data/predicted_genes")),
+            title="Wybierz plik FASTA z białkami",
+            filetypes=[
+                ("FASTA protein", "*.faa *.fasta *.fa"),
+                ("Wszystkie pliki", "*.*")
+            ]
+        )
+        if selected:
+            proteins_path.set(selected)
+            self.write_log(f"Wybrano plik białek do annotacji: {selected}")
+
+    def choose_diamond_database(self, diamond_db):
+        selected = filedialog.askopenfilename(
+            initialdir=str(self.project_path("data")),
+            title="Wybierz bazę DIAMOND",
+            filetypes=[
+                ("DIAMOND database", "*.dmnd"),
+                ("Wszystkie pliki", "*.*")
+            ]
+        )
+        if selected:
+            diamond_db.set(selected)
+            self.write_log(f"Wybrano bazę DIAMOND: {selected}")
+
+    def run_functional_annotation_tool(self, tool, proteins_path, diamond_db):
+        command = [
+            "python3",
+            "scripts/run_functional_annotation.py",
+            "--tool",
+            tool,
+            "--proteins",
+            proteins_path
+        ]
+
+        if tool == "diamond":
+            if not diamond_db.strip():
+                messagebox.showerror("DIAMOND", "Dla DIAMOND trzeba wskazać bazę .dmnd.")
+                return
+            command.extend(["--diamond-db", diamond_db.strip()])
+
+        self.run_command(f"Annotacja funkcjonalna - {tool}", command)
+
     def run_annotation(self):
-        self.placeholder("Annotacja funkcjonalna")
+        self.open_functional_annotation_window()
 
     def run_hydrolases(self):
         self.placeholder("Predykcja hydrolaz")
@@ -329,6 +435,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
