@@ -367,15 +367,28 @@ class GenomePipelineApp(tk.Tk):
             command=lambda: self.choose_diamond_database(diamond_db)
         ).pack(side="left", padx=(8, 0))
 
+        button_row = ttk.Frame(frame)
+        button_row.pack(fill="x", pady=(6, 0))
+
         ttk.Button(
-            frame,
-            text="Uruchom annotację funkcjonalną",
+            button_row,
+            text="Uruchom wybrane narzędzie",
             command=lambda: self.run_functional_annotation_tool(
                 selected_tool.get(),
                 proteins_path.get(),
                 diamond_db.get()
             )
-        ).pack(anchor="e")
+        ).pack(side="right")
+
+        ttk.Button(
+            button_row,
+            text="Uruchom wszystkie analizy",
+            command=lambda: self.run_functional_annotation_tool(
+                "all",
+                proteins_path.get(),
+                diamond_db.get()
+            )
+        ).pack(side="right", padx=(0, 8))
 
     def choose_proteins_file(self, proteins_path):
         selected = filedialog.askopenfilename(
@@ -435,6 +448,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

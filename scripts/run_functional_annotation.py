@@ -107,7 +107,7 @@ def write_report(tool, proteins, result_file, log_file, output_dir):
 
 def main():
     parser = argparse.ArgumentParser(description="Annotacja funkcjonalna przewidywanych bialek.")
-    parser.add_argument("--tool", choices=["diamond", "eggnog", "interproscan"], required=True)
+    parser.add_argument("--tool", choices=["diamond", "eggnog", "interproscan", "all"], required=True)
     parser.add_argument("--proteins", default=str(DEFAULT_PROTEINS), help="Plik FASTA z bialkami.")
     parser.add_argument("--output-dir", default=str(DEFAULT_OUTPUT_DIR), help="Katalog wynikowy.")
     parser.add_argument("--threads", type=int, default=8)
@@ -122,25 +122,41 @@ def main():
     if not proteins.exists():
         raise FileNotFoundError(f"Nie znaleziono pliku bialek: {proteins}")
 
-    if args.tool == "diamond":
+    results = []
+
+    if args.tool in ["diamond", "all"]:
         if not args.diamond_db:
             raise ValueError("Dla DIAMOND trzeba podac --diamond-db.")
         result_file, log_file = run_diamond(proteins, output_dir, args.diamond_db, args.threads)
-        tool_name = "DIAMOND"
-    elif args.tool == "eggnog":
-        result_file, log_file = run_eggnog(proteins, output_dir, args.threads)
-        tool_name = "eggNOG-mapper"
-    else:
-        result_file, log_file = run_interproscan(proteins, output_dir, args.threads)
-        tool_name = "InterProScan"
+        results.append(("DIAMOND", result_file, log_file))
 
-    report_file = write_report(tool_name, proteins, result_file, log_file, output_dir)
+    if args.tool in ["eggnog", "all"]:
+        result_file, log_file = run_eggnog(proteins, output_dir, args.threads)
+        results.append(("eggNOG-mapper", result_file, log_file))
+
+    if args.tool in ["interproscan", "all"]:
+        result_file, log_file = run_interproscan(proteins, output_dir, args.threads)
+        results.append(("InterProScan", result_file, log_file))
+
+    report_file = output_dir / "functional_annotation_report.txt"
+    with open(report_file, "w", encoding="utf-8") as report:
+        report.write("Raport annotacji funkcjonalnej\n")
+        report.write("==============================\n\n")
+        report.write(f"Data analizy: {datetime.now().isoformat(timespec='seconds')}\n")
+        report.write(f"Plik bialek: {proteins}\n")
+        report.write(f"Tryb: {args.tool}\n\n")
+        for tool_name, result_file, log_file in results:
+            report.write(f"Narzędzie: {tool_name}\n")
+            report.write(f"Plik wynikowy: {result_file}\n")
+            report.write(f"Log: {log_file}\n\n")
 
     print("Annotacja funkcjonalna zakonczona.")
-    print(f"Narzędzie: {tool_name}")
-    print(f"Wynik: {result_file}")
+    print(f"Tryb: {args.tool}")
+    for tool_name, result_file, log_file in results:
+        print(f"{tool_name}: {result_file}")
     print(f"Raport: {report_file}")
 
 
 if __name__ == "__main__":
     main()
+
