@@ -386,7 +386,19 @@ class GenomePipelineApp(tk.Tk):
             command=lambda: self.run_functional_annotation_tool(
                 "all",
                 proteins_path.get(),
-                diamond_db.get()
+                diamond_db.get(),
+                False
+            )
+        ).pack(side="right", padx=(0, 8))
+
+        ttk.Button(
+            button_row,
+            text="Pobierz bazę DIAMOND i uruchom wszystkie",
+            command=lambda: self.run_functional_annotation_tool(
+                "all",
+                proteins_path.get(),
+                diamond_db.get(),
+                True
             )
         ).pack(side="right", padx=(0, 8))
 
@@ -416,7 +428,7 @@ class GenomePipelineApp(tk.Tk):
             diamond_db.set(selected)
             self.write_log(f"Wybrano bazę DIAMOND: {selected}")
 
-    def run_functional_annotation_tool(self, tool, proteins_path, diamond_db):
+    def run_functional_annotation_tool(self, tool, proteins_path, diamond_db, download_diamond_db=False):
         command = [
             "python3",
             "scripts/run_functional_annotation.py",
@@ -426,7 +438,9 @@ class GenomePipelineApp(tk.Tk):
             proteins_path
         ]
 
-        if tool == "diamond":
+        if download_diamond_db:
+            command.append("--download-diamond-db")
+        elif tool in ["diamond", "all"]:
             if not diamond_db.strip():
                 messagebox.showerror("DIAMOND", "Dla DIAMOND trzeba wskazać bazę .dmnd.")
                 return
@@ -448,6 +462,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
