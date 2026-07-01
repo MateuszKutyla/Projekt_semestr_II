@@ -127,6 +127,118 @@ def run_deeptmhmm(proteins, output_dir):
     return tool_dir, log_file
 
 
+def add_prediction(predictions, protein_id, source, hit_id, description, evalue="", score=""):
+    predictions.append({
+        "protein_id": protein_id,
+        "source": source,
+        "hit_id": hit_id,
+        "description": description,
+        "evalue": evalue,
+        "score": score
+    })
+
+
+def parse_diamond_results(result_file, predictions):
+    if not Path(result_file).exists():
+        return
+
+    with open(result_file, "r", encoding="utf-8", errors="replace") as handle:
+        for line in handle:
+            columns = line.rstrip("\n").split("\t")
+            if len(columns) < 7:
+                continue
+            add_prediction(
+                predictions,
+                protein_id=columns[0],
+                source="DIAMOND",
+                hit_id=columns[1],
+                description=columns[6],
+                evalue=columns[4],
+                score=columns[5]
+            )
+
+
+def parse_hmmer_results(result_file, predictions):
+    if not Path(result_file).exists():
+        return
+
+    with open(result_file, "r", encoding="utf-8", errors="replace") as handle:
+        for line in handle:
+            if line.startswith("#"):
+                continue
+            columns = line.split()
+            if len(columns) < 7:
+                continue
+            add_prediction(
+                predictions,
+                protein_id=columns[3],
+                source="HMMER",
+                hit_id=columns[0],
+                description=" ".join(columns[22:]) if len(columns) > 22 else columns[0],
+                evalue=columns[6],
+                score=columns[7] if len(columns) > 7 else ""
+            )
+
+
+def parse_dbcan_results(result_dir, predictions):
+    result_dir = Path(result_dir)
+    candidates = [
+        result_dir / "overview.txt",
+        result_dir / "hmmer.out",
+        result_dir / "diamond.out",
+        result_dir / "Hotpep.out"
+    ]
+
+    for candidate in candidates:
+        if not candidate.exists():
+            continue
+
+        with open(candidate, "r", encoding="utf-8", errors="replace") as handle:
+            for line in handle:
+                if line.lower().startswith("gene") or line.startswith("#"):
+                    continue
+                columns = line.rstrip("\n").split("\t")
+                if len(columns) < 2:
+                    columns = line.split()
+                if len(columns) < 2:
+                    continue
+
+                add_prediction(
+                    predictions,
+                    protein_id=columns[0],
+                    source="dbCAN",
+                    hit_id=columns[1],
+                    description=";".join(columns[2:]) if len(columns) > 2 else "CAZyme/hydrolase candidate"
+                )
+
+
+def write_combined_hydrolase_table(predictions, output_file):
+    output_file = Path(output_file)
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+
+    seen = set()
+    with open(output_file, "w", encoding="utf-8") as output:
+        output.write("protein_id\tsource\thit_id\tdescription\tevalue\tscore\n")
+        for item in predictions:
+            key = (
+                item["protein_id"],
+                item["source"],
+                item["hit_id"],
+                item["description"],
+                item["evalue"],
+                item["score"]
+            )
+            if key in seen:
+                continue
+            seen.add(key)
+            output.write(
+                f"{item['protein_id']}\t{item['source']}\t{item['hit_id']}\t"
+                f"{item['description']}\t{item['evalue']}\t{item['score']}\n"
+            )
+
+    return output_file
+
+
 def write_report(results, proteins, output_dir):
     report_file = output_dir / "hydrolase_prediction_report.txt"
 
@@ -163,22 +275,26 @@ def main():
         raise FileNotFoundError(f"Nie znaleziono pliku bialek: {proteins}")
 
     results = []
+    predictions = []
 
     if args.tool in ["dbcan", "all"]:
         result_path, log_file = run_dbcan(proteins, output_dir, args.threads)
         results.append(("dbCAN", result_path, log_file))
+        parse_dbcan_results(result_path, predictions)
 
     if args.tool in ["hmmer", "all"]:
         if not args.hmm_db:
             raise ValueError("Dla HMMER trzeba podac --hmm-db.")
         result_path, log_file = run_hmmer(proteins, output_dir, Path(args.hmm_db), args.threads)
         results.append(("HMMER", result_path, log_file))
+        parse_hmmer_results(result_path, predictions)
 
     if args.tool in ["diamond", "all"]:
         if not args.diamond_db:
             raise ValueError("Dla DIAMOND trzeba podac --diamond-db.")
         result_path, log_file = run_diamond_hydrolases(proteins, output_dir, Path(args.diamond_db), args.threads)
         results.append(("DIAMOND hydrolases", result_path, log_file))
+        parse_diamond_results(result_path, predictions)
 
     if args.tool in ["signalp", "all"]:
         result_path, log_file = run_signalp(proteins, output_dir)
@@ -188,11 +304,14 @@ def main():
         result_path, log_file = run_deeptmhmm(proteins, output_dir)
         results.append(("DeepTMHMM", result_path, log_file))
 
+    combined_file = write_combined_hydrolase_table(predictions, PUBLISHED_DIR / "predicted_hydrolases.tsv")
     report_file = write_report(results, proteins, output_dir)
 
     print("Predykcja hydrolaz zakonczona.")
     print(f"Raport: {report_file}")
+    print(f"Zbiorczy plik predykcji hydrolaz: {combined_file}")
 
 
 if __name__ == "__main__":
     main()
+
