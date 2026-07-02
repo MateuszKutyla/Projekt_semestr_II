@@ -9,6 +9,7 @@ dependencies:
   # Core
   - python=3.11
   - tk
+  - pyyaml
 
   # Read quality control and filtering
   - fastqc
@@ -43,6 +44,7 @@ dependencies:
   - biolib
   - eggnog-mapper
   - interproscan
+
 
 
 

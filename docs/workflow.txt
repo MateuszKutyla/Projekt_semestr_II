@@ -1,0 +1,215 @@
+﻿Workflow analizy genomu grzyba
+==============================
+
+Cel
+---
+
+Celem pipeline'u jest przeprowadzenie pełnej analizy genomu grzyba od surowych odczytów sekwencjonowania do listy potencjalnych hydrolaz.
+
+Pipeline wykorzystuje dwa typy danych:
+
+- odczyty krótkie Illumina,
+- odczyty długie Oxford Nanopore Technologies (ONT).
+
+Schemat ogólny
+--------------
+
+    data/raw/
+        |
+        v
+    Walidacja FASTQ
+    scripts/validate_reads.py
+        |
+        v
+    data/clean/
+        |
+        v
+    GUI: scripts/genome_pipeline_gui.py
+        |
+        +--> Assemblacja de novo
+        |       - Illumina: FastQC + MultiQC + fastp + SPAdes
+        |       - ONT: NanoPlot + Porechop + Filtlong + Flye
+        |       - Hybrydowa: Illumina + ONT + SPAdes
+        |       - ocena: QUAST + BUSCO
+        |
+        +--> Predykcja genów
+        |       - Augustus
+        |       - wynik: GFF3 + FASTA białek
+        |
+        +--> Annotacja funkcjonalna
+        |       - DIAMOND
+        |       - eggNOG-mapper
+        |       - InterProScan
+        |
+        +--> Predykcja hydrolaz
+        |       - dbCAN
+        |       - HMMER
+        |       - DIAMOND względem bazy hydrolaz
+        |       - SignalP
+        |       - DeepTMHMM
+        |
+        v
+    Raport końcowy
+    scripts/build_final_report.py
+
+Etap 1: walidacja FASTQ
+-----------------------
+
+Walidacja jest osobnym krokiem konsolowym wykonywanym przed uruchomieniem GUI.
+
+Program:
+
+    scripts/validate_reads.py
+
+Sprawdza:
+
+- format FASTQ,
+- obecność sekwencji i jakości,
+- poprawność znaków,
+- zgodność długości sekwencji i jakości,
+- zgodność sparowanych odczytów Illumina R1/R2.
+
+Wyniki:
+
+    results/read_validation/
+    data/clean/
+
+Etap 2: assemblacja de novo
+---------------------------
+
+Program:
+
+    scripts/run_denovo_assembly.py
+
+Tryby:
+
+1. Illumina:
+   - FastQC i MultiQC przed czyszczeniem,
+   - fastp,
+   - FastQC i MultiQC po czyszczeniu,
+   - SPAdes,
+   - QUAST i BUSCO.
+
+2. ONT:
+   - NanoPlot przed czyszczeniem,
+   - Porechop,
+   - Filtlong,
+   - NanoPlot po czyszczeniu,
+   - Flye,
+   - QUAST i BUSCO.
+
+3. Hybrydowy:
+   - czyszczenie Illumina,
+   - czyszczenie ONT,
+   - SPAdes z odczytami Illumina i ONT,
+   - QUAST i BUSCO.
+
+Najważniejszy wynik:
+
+    data/assemble_genome/latest_assembly.fasta
+
+Etap 3: predykcja genów
+-----------------------
+
+Program:
+
+    scripts/run_gene_prediction.py
+
+Narzędzie:
+
+    Augustus
+
+Wejście:
+
+    data/assemble_genome/latest_assembly.fasta
+
+Wyniki:
+
+    data/predicted_genes/predicted_genes.gff3
+    data/predicted_genes/predicted_proteins.faa
+    results/gene_prediction/augustus/
+
+Etap 4: annotacja funkcjonalna
+------------------------------
+
+Program:
+
+    scripts/run_functional_annotation.py
+
+Narzędzia:
+
+- DIAMOND,
+- eggNOG-mapper,
+- InterProScan.
+
+Wejście:
+
+    data/predicted_genes/predicted_proteins.faa
+
+Wyniki:
+
+    results/functional_annotation/
+
+Etap 5: predykcja hydrolaz
+--------------------------
+
+Program:
+
+    scripts/run_hydrolase_prediction.py
+
+Narzędzia:
+
+- dbCAN,
+- HMMER,
+- DIAMOND,
+- SignalP,
+- DeepTMHMM.
+
+Główny wynik zbiorczy:
+
+    data/hydrolases/predicted_hydrolases.tsv
+
+Etap 6: raport końcowy
+----------------------
+
+Program:
+
+    scripts/build_final_report.py
+
+Raport zbiera:
+
+- statystyki złożonego genomu,
+- liczbę przewidzianych genów,
+- liczbę przewidzianych białek,
+- liczbę wpisów annotacji funkcjonalnej,
+- liczbę kandydatów hydrolaz,
+- lokalizacje raportów QUAST i BUSCO.
+
+Wyniki:
+
+    results/final_report/final_report.txt
+    results/final_report/final_report.json
+
+Kontrola środowiska
+-------------------
+
+Przed analizą można sprawdzić dostępność narzędzi:
+
+    scripts/check_dependencies.py
+
+Wynik:
+
+    results/dependency_check/dependency_check_report.txt
+
+Najważniejsze katalogi
+----------------------
+
+    data/raw/                  surowe dane
+    data/clean/                dane po walidacji i czyszczeniu
+    data/assemble_genome/      złożony genom
+    data/predicted_genes/      GFF3 i białka po predykcji genów
+    data/functional_annotation/ dane pomocnicze annotacji
+    data/hydrolases/           zbiorcze wyniki hydrolaz
+    data/databases/            lokalne bazy DIAMOND i HMM
+    results/                   raporty szczegółowe
+    logs/                      logi wykonania

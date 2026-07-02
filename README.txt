@@ -252,6 +252,13 @@ Główne założenia i domyślne ścieżki są opisane w pliku:
 
 Plik konfiguracyjny porządkuje ustawienia projektu, ale część skryptów nadal korzysta z domyślnych ścieżek zapisanych bezpośrednio w kodzie. W praktyce najważniejsze pliki wejściowe powinny znajdować się w data/raw/ i data/clean/.
 
+Dokument workflow
+-----------------
+
+Szczegółowy opis przebiegu analizy znajduje się w pliku:
+
+    docs/workflow.txt
+
 Struktura najważniejszych katalogów
 -----------------------------------
 
@@ -277,4 +284,5 @@ Plan analizy
 4. Annotacja funkcjonalna w programie GUI: scripts/genome_pipeline_gui.py.
 5. Predykcja hydrolaz w programie GUI: scripts/genome_pipeline_gui.py.
 6. Opcjonalnie: uruchomienie całej analizy jednym przyciskiem Pełny pipeline.
+
 

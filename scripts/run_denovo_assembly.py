@@ -3,6 +3,7 @@ import argparse
 import shutil
 import subprocess
 from pathlib import Path
+from pipeline_config import get_value, load_config
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
@@ -221,9 +222,23 @@ def run_hybrid_pipeline(args, log_handle):
 def main():
     parser = argparse.ArgumentParser(description="Pipeline assemblacji de novo z QC, czyszczeniem, QUAST i BUSCO.")
     parser.add_argument("--mode", choices=["illumina", "ont", "hybrid"], required=True)
-    parser.add_argument("--threads", type=int, default=8)
-    parser.add_argument("--busco-lineage", default="fungi_odb10")
+    parser.add_argument("--threads", type=int, default=None)
+    parser.add_argument("--busco-lineage", default=None)
+    parser.add_argument("--config", default=None, help="Plik konfiguracyjny YAML.")
     args = parser.parse_args()
+
+    config = load_config(args.config)
+
+    global RAW_R1, RAW_R2, RAW_ONT, CLEAN_R1, CLEAN_R2, CLEAN_ONT, FILTERED_ONT
+    RAW_R1 = get_value(config, "reads.illumina_r1", RAW_R1)
+    RAW_R2 = get_value(config, "reads.illumina_r2", RAW_R2)
+    RAW_ONT = get_value(config, "reads.ont", RAW_ONT)
+    CLEAN_R1 = get_value(config, "assembly.cleaning.illumina.clean_r1", CLEAN_R1)
+    CLEAN_R2 = get_value(config, "assembly.cleaning.illumina.clean_r2", CLEAN_R2)
+    FILTERED_ONT = get_value(config, "assembly.cleaning.ont.clean_reads", FILTERED_ONT)
+
+    args.threads = args.threads or int(get_value(config, "project.threads", 8))
+    args.busco_lineage = args.busco_lineage or get_value(config, "assembly.busco_lineage", "fungi_odb10")
 
     ensure_dirs()
     log_file = path(f"logs/assembly_{args.mode}.log")
@@ -245,5 +260,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
 
 

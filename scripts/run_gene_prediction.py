@@ -4,6 +4,7 @@ import shutil
 import subprocess
 from datetime import datetime
 from pathlib import Path
+from pipeline_config import get_value, load_config, project_path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_GENOME = PROJECT_ROOT / "data/assemble_genome/latest_assembly.fasta"
@@ -133,22 +134,32 @@ def run_augustus(genome, species, no_species, output_dir):
 
 def main():
     parser = argparse.ArgumentParser(description="Predykcja genow narzedziem Augustus.")
-    parser.add_argument("--genome", default=str(DEFAULT_GENOME), help="Plik FASTA ze zlozonym genomem.")
+    parser.add_argument("--genome", default=None, help="Plik FASTA ze zlozonym genomem.")
     parser.add_argument("--species", default=None, help="Model gatunkowy Augustusa.")
     parser.add_argument("--no-species", action="store_true", help="Uruchamia Augustusa bez wskazywania modelu gatunkowego.")
-    parser.add_argument("--output-dir", default=str(DEFAULT_OUTPUT_DIR), help="Katalog wynikowy.")
+    parser.add_argument("--output-dir", default=None, help="Katalog wynikowy.")
+    parser.add_argument("--config", default=None, help="Plik konfiguracyjny YAML.")
     args = parser.parse_args()
 
-    genome = Path(args.genome)
+    config = load_config(args.config)
+    genome_value = args.genome or get_value(config, "gene_prediction.genome", str(DEFAULT_GENOME))
+    output_value = args.output_dir or get_value(config, "gene_prediction.output_dir", str(DEFAULT_OUTPUT_DIR))
+    species = args.species or get_value(config, "gene_prediction.species", None)
+
+    genome = project_path(genome_value)
+    output_dir = project_path(output_value)
+
     if not genome.exists():
         raise FileNotFoundError(f"Nie znaleziono pliku genomu: {genome}")
 
-    if not args.no_species and not args.species:
-        raise ValueError("Podaj --species albo uzyj opcji --no-species.")
+    if not args.no_species and not species:
+        raise ValueError("Podaj --species albo ustaw gene_prediction.species w config/config.yaml.")
 
-    run_augustus(genome, args.species, args.no_species, Path(args.output_dir))
+    run_augustus(genome, species, args.no_species, output_dir)
 
 
 if __name__ == "__main__":
     main()
+
+
 

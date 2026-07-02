@@ -51,6 +51,9 @@ class GenomePipelineApp(tk.Tk):
         self.add_module(button_grid, 1, 0, "Annotacja funkcjonalna", "Moduł do przypisywania funkcji przewidywanym genom i białkom.", self.run_annotation)
         self.add_module(button_grid, 1, 1, "Predykcja hydrolaz", "Moduł do wyszukiwania potencjalnych enzymów hydrolitycznych.", self.run_hydrolases)
         self.add_module(button_grid, 2, 0, "Pełny pipeline", "Uruchamia assemblację, predykcję genów, annotację funkcjonalną i predykcję hydrolaz.", self.open_full_pipeline_window)
+        self.add_module(button_grid, 2, 1, "Sprawdzenie narzędzi", "Sprawdza, czy środowisko Linux zawiera programy potrzebne do analizy.", self.run_dependency_check)
+        self.add_module(button_grid, 2, 2, "Raport końcowy", "Tworzy zbiorczy raport z wyników zapisanych w data/ i results/.", self.run_final_report)
+        self.add_module(button_grid, 3, 0, "Tryb demonstracyjny", "Tworzy małe przykładowe wyniki bez uruchamiania ciężkich narzędzi.", self.run_demo_mode)
 
         ttk.Label(main, text="Log programu").pack(anchor="w", pady=(18, 6))
         self.log = tk.Text(main, height=12, bg="#111827", fg="#e5e7eb", insertbackground="white", wrap="word")
@@ -232,11 +235,13 @@ class GenomePipelineApp(tk.Tk):
 
         target_variable.set(str(output_db))
 
+        db_kind = "diamond_hydrolase" if "hydrolaz" in title.lower() else "diamond"
+
         command = [
             sys.executable,
             "scripts/download_and_build_databases.py",
             "--kind",
-            "diamond",
+            db_kind,
             "--output",
             str(output_db)
         ]
@@ -380,6 +385,28 @@ class GenomePipelineApp(tk.Tk):
         command = [sys.executable, "scripts/run_denovo_assembly.py", "--mode", "hybrid"]
         self.run_command("Pipeline assemblacji hybrydowej Illumina + ONT", command)
 
+    def result_hint(self, title):
+        title_lower = title.lower()
+
+        if "sprawdzenie narzędzi" in title_lower:
+            return "Raport zapisano w results/dependency_check/."
+        if "raport końcowy" in title_lower:
+            return "Raport zapisano w results/final_report/."
+        if "tryb demonstracyjny" in title_lower:
+            return "Przykładowe wyniki zapisano w data/ i results/demo_mode/."
+        if "assemblacji" in title_lower or "assemblacja" in title_lower:
+            return "Wyniki assemblacji zapisano w data/assemble_genome/, results/assembly/ i results/assembly_qc/."
+        if "predykcja genów" in title_lower:
+            return "Wyniki predykcji genów zapisano w data/predicted_genes/ i results/gene_prediction/."
+        if "annotacja" in title_lower:
+            return "Wyniki annotacji funkcjonalnej zapisano w results/functional_annotation/."
+        if "hydrolaz" in title_lower:
+            return "Wyniki predykcji hydrolaz zapisano w data/hydrolases/ i results/hydrolase_prediction/."
+        if "pipeline" in title_lower:
+            return "Wyniki zapisano w data/, results/ oraz logs/full_pipeline.log."
+
+        return "Szczegóły zapisano w oknie logu oraz w folderach results/ i logs/."
+
     def run_command(self, title, command):
         if self.current_process is not None:
             messagebox.showwarning("Proces w toku", "Inna analiza jest już uruchomiona.")
@@ -410,16 +437,20 @@ class GenomePipelineApp(tk.Tk):
             return_code = self.current_process.wait()
 
             if return_code == 0:
+                hint = self.result_hint(title)
                 self.after(0, self.write_log, f"Zakończono powodzeniem: {title}")
-                self.after(0, messagebox.showinfo, title, "Assemblacja zakończona powodzeniem.")
+                self.after(0, self.write_log, hint)
+                self.after(0, messagebox.showinfo, title, f"Proces zakończony powodzeniem.\n\n{hint}")
             else:
+                help_text = "Sprawdź log w oknie programu oraz pliki w folderze logs/."
                 self.after(0, self.write_log, f"Proces zakończył się błędem. Kod: {return_code}")
-                self.after(0, messagebox.showerror, title, f"Proces zakończył się błędem. Kod: {return_code}")
+                self.after(0, self.write_log, help_text)
+                self.after(0, messagebox.showerror, title, f"Proces zakończył się błędem. Kod: {return_code}.\n\n{help_text}")
 
         except FileNotFoundError:
             tool = command[0]
             self.after(0, self.write_log, f"Nie znaleziono narzędzia: {tool}")
-            self.after(0, messagebox.showerror, title, f"Nie znaleziono narzędzia: {tool}. Sprawdź, czy jest zainstalowane w Linuxie i dostępne w PATH.")
+            self.after(0, messagebox.showerror, title, f"Nie znaleziono narzędzia: {tool}.\n\nAktywuj środowisko mamba/conda i uruchom kafelek Sprawdzenie narzędzi.")
         except Exception as error:
             self.after(0, self.write_log, f"Błąd uruchomienia: {error}")
             self.after(0, messagebox.showerror, title, f"Błąd uruchomienia: {error}")
@@ -874,6 +905,27 @@ class GenomePipelineApp(tk.Tk):
         self.open_hydrolase_prediction_window()
 
 
+    def run_dependency_check(self):
+        command = [
+            sys.executable,
+            "scripts/check_dependencies.py"
+        ]
+        self.run_command("Sprawdzenie narzędzi pipeline'u", command)
+
+    def run_final_report(self):
+        command = [
+            sys.executable,
+            "scripts/build_final_report.py"
+        ]
+        self.run_command("Raport końcowy analizy", command)
+
+    def run_demo_mode(self):
+        command = [
+            sys.executable,
+            "scripts/run_demo_mode.py"
+        ]
+        self.run_command("Tryb demonstracyjny", command)
+
 def main():
     app = GenomePipelineApp()
     app.mainloop()
@@ -881,6 +933,14 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
+
+
+
+
+
 
 
 
