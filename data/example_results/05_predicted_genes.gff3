@@ -1,0 +1,9 @@
+﻿##gff-version 3
+contig_1AUGUSTUSgene120035000.87+.ID=g1
+contig_1AUGUSTUSmRNA120035000.87+.ID=g1.t1;Parent=g1
+contig_1AUGUSTUSexon12001800.+.ID=g1.t1.exon1;Parent=g1.t1
+contig_1AUGUSTUSexon22003500.+.ID=g1.t1.exon2;Parent=g1.t1
+contig_1AUGUSTUSCDS12501800.+0ID=g1.t1.cds1;Parent=g1.t1
+contig_1AUGUSTUSCDS22003400.+1ID=g1.t1.cds2;Parent=g1.t1
+contig_2AUGUSTUSgene80025000.91-.ID=g2
+contig_2AUGUSTUSmRNA80025000.91-.ID=g2.t1;Parent=g2

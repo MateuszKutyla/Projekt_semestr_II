@@ -1,0 +1,22 @@
+﻿Raport kontroli poprawnosci plikow FASTQ
+========================================
+
+Status koncowy: DANE POPRAWNE
+
+Illumina R1:
+- liczba rekordow: 1250000
+- srednia dlugosc: 148.7
+- informacja o jakosci: tak
+- status: OK
+
+Illumina R2:
+- liczba rekordow: 1250000
+- srednia dlugosc: 148.5
+- informacja o jakosci: tak
+- status: OK
+
+ONT:
+- liczba rekordow: 210000
+- srednia dlugosc: 9400.2
+- informacja o jakosci: tak
+- status: OK

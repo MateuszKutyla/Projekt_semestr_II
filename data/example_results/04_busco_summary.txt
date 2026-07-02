@@ -1,0 +1,15 @@
+﻿BUSCO summary example
+=====================
+
+Input file: data/assemble_genome/latest_assembly.fasta
+Lineage dataset: fungi_odb10
+Mode: genome
+
+C:94.2%[S:92.8%,D:1.4%],F:3.1%,M:2.7%,n:758
+
+Complete BUSCOs: 714
+Complete and single-copy BUSCOs: 703
+Complete and duplicated BUSCOs: 11
+Fragmented BUSCOs: 24
+Missing BUSCOs: 20
+Total BUSCO groups searched: 758

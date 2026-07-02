@@ -1,0 +1,5 @@
+﻿protein_idtoolhit_iddescriptionevaluebitscorego_termskegg
+augustus_protein_1DIAMONDsp|Q00001|EXAMPLE_HYDROLASEglycoside hydrolase family protein1e-80280GO:0004553ko:K01190
+augustus_protein_1eggNOGCOG1234carbohydrate metabolic process2e-60240GO:0005975ko:K01200
+augustus_protein_1InterProScanPF00150glycosyl hydrolase domain3e-40180GO:0004553-
+augustus_protein_2DIAMONDsp|Q00002|TRANSPORTERABC transporter-like protein1e-45190GO:0055085ko:K02000
