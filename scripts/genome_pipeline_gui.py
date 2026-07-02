@@ -28,8 +28,7 @@ class GenomePipelineApp(tk.Tk):
         header = tk.Frame(self, bg="#1f2937", padx=22, pady=18)
         header.pack(fill="x")
 
-        tk.Label(header, text="Analiza genomu grzyba", bg="#1f2937", fg="white", font=("Segoe UI", 20, "bold")).pack(anchor="w")
-        tk.Label(header, text="Illumina + ONT | rdzeń programu do kolejnych etapów analizy", bg="#1f2937", fg="#d1d5db", font=("Segoe UI", 10)).pack(anchor="w", pady=(4, 0))
+        tk.Label(header, text="Analiza genomu grzyba", bg="#1f2937", fg="white", font=("Segoe UI", 20, "bold")).pack(anchor="center")
 
         main = ttk.Frame(self, padding=20)
         main.pack(fill="both", expand=True)
@@ -859,6 +858,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
