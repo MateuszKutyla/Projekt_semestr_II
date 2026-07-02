@@ -730,6 +730,11 @@ class GenomePipelineApp(tk.Tk):
             text="Wybierz",
             command=lambda: self.choose_hmm_database(hmm_db)
         ).pack(side="left", padx=(8, 0))
+        ttk.Button(
+            hmm_row,
+            text="Przygotuj HMM",
+            command=lambda: self.prepare_hmm_database(hmm_db)
+        ).pack(side="left", padx=(8, 0))
 
         ttk.Label(frame, text="Baza DIAMOND hydrolaz:").pack(anchor="w")
         diamond_row = ttk.Frame(frame)
@@ -740,6 +745,11 @@ class GenomePipelineApp(tk.Tk):
             diamond_row,
             text="Wybierz",
             command=lambda: self.choose_diamond_database(diamond_db)
+        ).pack(side="left", padx=(8, 0))
+        ttk.Button(
+            diamond_row,
+            text="Zbuduj",
+            command=lambda: self.build_diamond_database(diamond_db, "Zbuduj bazę DIAMOND hydrolaz")
         ).pack(side="left", padx=(8, 0))
 
         ttk.Button(
@@ -836,6 +846,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
