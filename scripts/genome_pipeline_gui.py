@@ -1,5 +1,6 @@
 ﻿#!/usr/bin/env python3
 import subprocess
+import sys
 import threading
 import tkinter as tk
 from datetime import datetime
@@ -210,7 +211,7 @@ class GenomePipelineApp(tk.Tk):
         target_variable.set(str(output_db))
 
         command = [
-            "python3",
+            sys.executable,
             "scripts/download_and_build_databases.py",
             "--kind",
             "diamond",
@@ -226,7 +227,7 @@ class GenomePipelineApp(tk.Tk):
         target_variable.set(str(output_hmm))
 
         command = [
-            "python3",
+            sys.executable,
             "scripts/download_and_build_databases.py",
             "--kind",
             "hmm",
@@ -268,7 +269,7 @@ class GenomePipelineApp(tk.Tk):
             return
 
         command = [
-            "python3",
+            sys.executable,
             "scripts/run_full_pipeline.py",
             "--assembly-mode",
             assembly_mode,
@@ -346,15 +347,15 @@ class GenomePipelineApp(tk.Tk):
         ])
 
     def run_illumina_assembly(self):
-        command = ["python3", "scripts/run_denovo_assembly.py", "--mode", "illumina"]
+        command = [sys.executable, "scripts/run_denovo_assembly.py", "--mode", "illumina"]
         self.run_command("Pipeline assemblacji de novo Illumina", command)
 
     def run_ont_assembly(self):
-        command = ["python3", "scripts/run_denovo_assembly.py", "--mode", "ont"]
+        command = [sys.executable, "scripts/run_denovo_assembly.py", "--mode", "ont"]
         self.run_command("Pipeline assemblacji de novo ONT", command)
 
     def run_hybrid_assembly(self):
-        command = ["python3", "scripts/run_denovo_assembly.py", "--mode", "hybrid"]
+        command = [sys.executable, "scripts/run_denovo_assembly.py", "--mode", "hybrid"]
         self.run_command("Pipeline assemblacji hybrydowej Illumina + ONT", command)
 
     def run_command(self, title, command):
@@ -499,7 +500,7 @@ class GenomePipelineApp(tk.Tk):
         species = custom_species.strip() if custom_species.strip() else selected_species
 
         command = [
-            "python3",
+            sys.executable,
             "scripts/run_gene_prediction.py",
             "--genome",
             genome_path
@@ -631,7 +632,7 @@ class GenomePipelineApp(tk.Tk):
 
     def run_functional_annotation_tool(self, tool, proteins_path, diamond_db, download_diamond_db=False):
         command = [
-            "python3",
+            sys.executable,
             "scripts/run_functional_annotation.py",
             "--tool",
             tool,
@@ -810,7 +811,7 @@ class GenomePipelineApp(tk.Tk):
 
         for tool in selected_tools:
             command = [
-                "python3",
+                sys.executable,
                 "scripts/run_hydrolase_prediction.py",
                 "--tool",
                 tool,
@@ -835,6 +836,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
