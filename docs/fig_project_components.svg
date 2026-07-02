@@ -1,0 +1,128 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <defs>
+    <style>
+      .bg { fill: #f7f9fc; }
+      .title { font: 700 48px 'Segoe UI', Arial, sans-serif; fill: #102033; }
+      .subtitle { font: 400 23px 'Segoe UI', Arial, sans-serif; fill: #53657a; }
+      .box { fill: #ffffff; stroke: #c8d3df; stroke-width: 2.2; rx: 18; }
+      .input { fill: #e8f5ff; stroke: #2b8fd7; }
+      .gui { fill: #fff4e8; stroke: #dd7b22; }
+      .process { fill: #eaf8f1; stroke: #229b68; }
+      .result { fill: #fff9d9; stroke: #c49a18; }
+      .db { fill: #f2eafa; stroke: #8d4cc2; }
+      .report { fill: #ffe9e9; stroke: #d04444; }
+      .support { fill: #eef2f7; stroke: #708399; }
+      .label { font: 700 25px 'Segoe UI', Arial, sans-serif; fill: #102033; }
+      .small { font: 400 18px 'Segoe UI', Arial, sans-serif; fill: #314357; }
+      .tiny { font: 400 15px 'Segoe UI', Arial, sans-serif; fill: #52657a; }
+      .arrow { stroke: #334155; stroke-width: 3.2; fill: none; marker-end: url(#arrow); }
+      .soft { stroke: #6b7c91; stroke-width: 2.4; fill: none; marker-end: url(#arrowSoft); stroke-dasharray: 8 8; }
+    </style>
+    <marker id="arrow" markerWidth="13" markerHeight="9" refX="12" refY="4.5" orient="auto">
+      <path d="M0,0 L13,4.5 L0,9 Z" fill="#334155"/>
+    </marker>
+    <marker id="arrowSoft" markerWidth="13" markerHeight="9" refX="12" refY="4.5" orient="auto">
+      <path d="M0,0 L13,4.5 L0,9 Z" fill="#6b7c91"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" width="1920" height="1080"/>
+  <text class="title" x="960" y="70" text-anchor="middle">Pipeline analizy genomu grzyba</text>
+  <text class="subtitle" x="960" y="112" text-anchor="middle">Główne komponenty projektu, przepływ danych i zależności między etapami</text>
+
+  <rect class="box input" x="80" y="175" width="285" height="125"/>
+  <text class="label" x="222" y="216" text-anchor="middle">Dane FASTQ</text>
+  <text class="small" x="222" y="252" text-anchor="middle">data/raw/</text>
+  <text class="tiny" x="222" y="280" text-anchor="middle">Illumina R1/R2 + ONT</text>
+
+  <rect class="box process" x="455" y="175" width="305" height="125"/>
+  <text class="label" x="607" y="216" text-anchor="middle">Walidacja odczytów</text>
+  <text class="small" x="607" y="252" text-anchor="middle">validate_reads.py</text>
+  <text class="tiny" x="607" y="280" text-anchor="middle">format, znaki, jakość, pary</text>
+
+  <rect class="box input" x="850" y="175" width="285" height="125"/>
+  <text class="label" x="992" y="216" text-anchor="middle">Dane clean</text>
+  <text class="small" x="992" y="252" text-anchor="middle">data/clean/</text>
+  <text class="tiny" x="992" y="280" text-anchor="middle">wejście do analizy</text>
+
+  <rect class="box gui" x="1245" y="165" width="365" height="145"/>
+  <text class="label" x="1427" y="210" text-anchor="middle">GUI programu</text>
+  <text class="small" x="1427" y="247" text-anchor="middle">genome_pipeline_gui.py</text>
+  <text class="tiny" x="1427" y="276" text-anchor="middle">uruchamia moduły pipeline'u</text>
+
+  <path class="arrow" d="M365 238 C395 238, 425 238, 455 238"/>
+  <path class="arrow" d="M760 238 C790 238, 820 238, 850 238"/>
+  <path class="arrow" d="M1135 238 C1175 238, 1205 238, 1245 238"/>
+
+  <rect class="box process" x="105" y="415" width="340" height="145"/>
+  <text class="label" x="275" y="456" text-anchor="middle">Assemblacja de novo</text>
+  <text class="small" x="275" y="492" text-anchor="middle">run_denovo_assembly.py</text>
+  <text class="tiny" x="275" y="522" text-anchor="middle">SPAdes / Flye</text>
+  <text class="tiny" x="275" y="548" text-anchor="middle">FastQC, MultiQC, QUAST, BUSCO</text>
+
+  <rect class="box result" x="105" y="655" width="340" height="120"/>
+  <text class="label" x="275" y="696" text-anchor="middle">Złożony genom</text>
+  <text class="small" x="275" y="732" text-anchor="middle">latest_assembly.fasta</text>
+  <text class="tiny" x="275" y="758" text-anchor="middle">data/assemble_genome/</text>
+
+  <rect class="box process" x="565" y="415" width="340" height="145"/>
+  <text class="label" x="735" y="456" text-anchor="middle">Predykcja genów</text>
+  <text class="small" x="735" y="492" text-anchor="middle">run_gene_prediction.py</text>
+  <text class="tiny" x="735" y="522" text-anchor="middle">Augustus</text>
+  <text class="tiny" x="735" y="548" text-anchor="middle">model referencyjny lub własny</text>
+
+  <rect class="box result" x="565" y="655" width="340" height="120"/>
+  <text class="label" x="735" y="696" text-anchor="middle">Geny i białka</text>
+  <text class="small" x="735" y="732" text-anchor="middle">GFF3 + FAA</text>
+  <text class="tiny" x="735" y="758" text-anchor="middle">data/predicted_genes/</text>
+
+  <rect class="box process" x="1025" y="415" width="340" height="145"/>
+  <text class="label" x="1195" y="456" text-anchor="middle">Annotacja funkcjonalna</text>
+  <text class="small" x="1195" y="492" text-anchor="middle">run_functional_annotation.py</text>
+  <text class="tiny" x="1195" y="522" text-anchor="middle">DIAMOND, eggNOG-mapper</text>
+  <text class="tiny" x="1195" y="548" text-anchor="middle">InterProScan</text>
+
+  <rect class="box process" x="1485" y="415" width="340" height="145"/>
+  <text class="label" x="1655" y="456" text-anchor="middle">Predykcja hydrolaz</text>
+  <text class="small" x="1655" y="492" text-anchor="middle">run_hydrolase_prediction.py</text>
+  <text class="tiny" x="1655" y="522" text-anchor="middle">dbCAN, HMMER, DIAMOND</text>
+  <text class="tiny" x="1655" y="548" text-anchor="middle">SignalP, DeepTMHMM</text>
+
+  <rect class="box result" x="1485" y="655" width="340" height="120"/>
+  <text class="label" x="1655" y="696" text-anchor="middle">Kandydaci hydrolaz</text>
+  <text class="small" x="1655" y="732" text-anchor="middle">predicted_hydrolases.tsv</text>
+  <text class="tiny" x="1655" y="758" text-anchor="middle">data/hydrolases/</text>
+
+  <path class="arrow" d="M1427 310 C1427 365, 275 360, 275 415"/>
+  <path class="arrow" d="M275 560 L275 655"/>
+  <path class="arrow" d="M445 715 C505 715, 505 488, 565 488"/>
+  <path class="arrow" d="M735 560 L735 655"/>
+  <path class="arrow" d="M905 715 C965 715, 965 488, 1025 488"/>
+  <path class="arrow" d="M1365 488 C1410 488, 1440 488, 1485 488"/>
+  <path class="arrow" d="M1655 560 L1655 655"/>
+  <path class="arrow" d="M905 715 C1060 820, 1325 815, 1485 715"/>
+
+  <rect class="box db" x="960" y="835" width="365" height="120"/>
+  <text class="label" x="1142" y="876" text-anchor="middle">Bazy danych</text>
+  <text class="small" x="1142" y="912" text-anchor="middle">data/databases/</text>
+  <text class="tiny" x="1142" y="938" text-anchor="middle">DIAMOND, HMM, baza hydrolaz</text>
+
+  <rect class="box report" x="1485" y="835" width="340" height="120"/>
+  <text class="label" x="1655" y="876" text-anchor="middle">Raport końcowy</text>
+  <text class="small" x="1655" y="912" text-anchor="middle">build_final_report.py</text>
+  <text class="tiny" x="1655" y="938" text-anchor="middle">results/final_report/</text>
+
+  <rect class="box support" x="105" y="835" width="365" height="120"/>
+  <text class="label" x="287" y="876" text-anchor="middle">Elementy pomocnicze</text>
+  <text class="small" x="287" y="912" text-anchor="middle">config.yaml, environment.yaml</text>
+  <text class="tiny" x="287" y="938" text-anchor="middle">sprawdzenie narzędzi, tryb demo</text>
+
+  <path class="soft" d="M1142 835 C1142 720, 1195 650, 1195 560"/>
+  <path class="soft" d="M1325 895 C1410 895, 1435 715, 1485 715"/>
+  <path class="arrow" d="M1655 775 L1655 835"/>
+  <path class="soft" d="M735 775 C900 955, 1320 980, 1485 895"/>
+  <path class="soft" d="M275 775 C590 1000, 1260 1010, 1485 895"/>
+  <path class="soft" d="M1427 310 C1570 770, 570 780, 470 895"/>
+
+  <text class="tiny" x="960" y="1028" text-anchor="middle">Projekt semestralny: składanie genomu grzyba z odczytów Illumina i ONT oraz predykcja funkcjonalna hydrolaz</text>
+</svg>
