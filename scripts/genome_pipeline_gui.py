@@ -14,8 +14,8 @@ class GenomePipelineApp(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Projekt semestralny II - analiza genomu grzyba")
-        self.geometry("1040x700")
-        self.minsize(900, 600)
+        self.geometry("1120x860")
+        self.minsize(980, 760)
 
         self.project_dir = tk.StringVar(value=str(PROJECT_ROOT))
         self.status_text = tk.StringVar(value="Gotowe do pracy")
@@ -52,7 +52,7 @@ class GenomePipelineApp(tk.Tk):
         self.add_module(button_grid, 1, 1, "Predykcja hydrolaz", "Moduł do wyszukiwania potencjalnych enzymów hydrolitycznych.", self.run_hydrolases)
         self.add_module(button_grid, 2, 0, "Pełny pipeline", "Uruchamia assemblację, predykcję genów, annotację funkcjonalną i predykcję hydrolaz.", self.open_full_pipeline_window)
         self.add_module(button_grid, 2, 1, "Sprawdzenie narzędzi", "Sprawdza, czy środowisko Linux zawiera programy potrzebne do analizy.", self.run_dependency_check)
-        self.add_module(button_grid, 2, 2, "Raport końcowy", "Tworzy zbiorczy raport z wyników zapisanych w data/ i results/.", self.run_final_report)
+        self.add_module(button_grid, 3, 1, "Raport końcowy", "Tworzy zbiorczy raport z wyników zapisanych w data/ i results/.", self.run_final_report)
         self.add_module(button_grid, 3, 0, "Tryb demonstracyjny", "Tworzy małe przykładowe wyniki bez uruchamiania ciężkich narzędzi.", self.run_demo_mode)
 
         ttk.Label(main, text="Log programu").pack(anchor="w", pady=(18, 6))
@@ -933,6 +933,9 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
 
 
 
