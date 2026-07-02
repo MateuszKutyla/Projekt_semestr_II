@@ -62,9 +62,11 @@ Surowych danych nie dodajemy do repozytorium Git.
 Program konsolowy do walidacji danych
 -------------------------------------
 
-Pierwszy etap wykonuje program:
+Pierwszy etap wykonuje program konsolowy:
 
     scripts/validate_reads.py
+
+Ten etap wykonuje się przed uruchomieniem GUI. Pełny pipeline dostępny w GUI zaczyna się od assemblacji genomu i zakłada, że dane zostały już sprawdzone oraz zapisane w data/clean/.
 
 Przykład uruchomienia:
 
@@ -155,8 +157,7 @@ GUI pozwala wybrać:
 
 - plik FASTA ze złożonym genomem,
 - model referencyjny Augustusa,
-- własny model,
-- opcję bez_modelu.
+- własny model Augustusa.
 
 Wyniki:
 
@@ -182,6 +183,7 @@ Dostępne narzędzia:
 - InterProScan.
 
 GUI pozwala uruchomić wybrane narzędzie albo wszystkie analizy funkcjonalne po kolei.
+Z poziomu GUI można też pobrać i zbudować bazę DIAMOND do annotacji funkcjonalnej.
 
 Wyniki:
 
@@ -207,6 +209,7 @@ Dostępne analizy:
 - DeepTMHMM.
 
 GUI pozwala zaznaczyć dowolny zestaw analiz albo wszystkie narzędzia.
+Z poziomu GUI można przygotować bazę HMM dla HMMER oraz zbudować bazę DIAMOND używaną w etapie predykcji hydrolaz.
 
 Główny zbiorczy plik wynikowy:
 
@@ -230,6 +233,8 @@ Uruchamia on kolejno:
 3. annotację funkcjonalną,
 4. predykcję hydrolaz.
 
+Walidacja plików FASTQ nie jest uruchamiana przez ten przycisk. Należy wykonać ją wcześniej z konsoli programem scripts/validate_reads.py.
+
 Skrypt konsolowy pełnego pipeline'u:
 
     scripts/run_full_pipeline.py
@@ -237,6 +242,15 @@ Skrypt konsolowy pełnego pipeline'u:
 Log pełnego pipeline'u:
 
     logs/full_pipeline.log
+
+Konfiguracja projektu
+---------------------
+
+Główne założenia i domyślne ścieżki są opisane w pliku:
+
+    config/config.yaml
+
+Plik konfiguracyjny porządkuje ustawienia projektu, ale część skryptów nadal korzysta z domyślnych ścieżek zapisanych bezpośrednio w kodzie. W praktyce najważniejsze pliki wejściowe powinny znajdować się w data/raw/ i data/clean/.
 
 Struktura najważniejszych katalogów
 -----------------------------------
@@ -247,6 +261,8 @@ Struktura najważniejszych katalogów
     data/predicted_genes/      geny i białka po predykcji
     data/functional_annotation/ dane pomocnicze annotacji funkcjonalnej
     data/hydrolases/           zbiorcze wyniki predykcji hydrolaz
+    data/databases/            lokalne bazy DIAMOND, HMM i inne bazy pomocnicze
+    data/example_results/      przykładowe pliki wynikowe pokazujące format rezultatów
     results/                   raporty i wyniki poszczególnych analiz
     logs/                      logi wykonania pipeline'u
     scripts/                   skrypty programu
@@ -261,3 +277,4 @@ Plan analizy
 4. Annotacja funkcjonalna w programie GUI: scripts/genome_pipeline_gui.py.
 5. Predykcja hydrolaz w programie GUI: scripts/genome_pipeline_gui.py.
 6. Opcjonalnie: uruchomienie całej analizy jednym przyciskiem Pełny pipeline.
+

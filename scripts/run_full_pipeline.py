@@ -1,6 +1,7 @@
 ﻿#!/usr/bin/env python3
 import argparse
 import subprocess
+import sys
 from datetime import datetime
 from pathlib import Path
 
@@ -51,7 +52,7 @@ def main():
         run_step(
             "1. Assemblacja genomu",
             [
-                "python3",
+                sys.executable,
                 "scripts/run_denovo_assembly.py",
                 "--mode",
                 args.assembly_mode,
@@ -62,7 +63,7 @@ def main():
         )
 
         gene_command = [
-            "python3",
+            sys.executable,
             "scripts/run_gene_prediction.py",
             "--genome",
             "data/assemble_genome/latest_assembly.fasta"
@@ -78,7 +79,7 @@ def main():
         run_step(
             "3. Annotacja funkcjonalna",
             [
-                "python3",
+                sys.executable,
                 "scripts/run_functional_annotation.py",
                 "--tool",
                 "all",
@@ -95,7 +96,7 @@ def main():
         run_step(
             "4. Predykcja hydrolaz",
             [
-                "python3",
+                sys.executable,
                 "scripts/run_hydrolase_prediction.py",
                 "--tool",
                 "all",
@@ -119,3 +120,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

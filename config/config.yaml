@@ -135,8 +135,9 @@ full_pipeline:
   log: logs/full_pipeline.log
 
   enabled_steps:
-    read_validation: true
+    read_validation: false
     assembly: true
     gene_prediction: true
     functional_annotation: true
     hydrolase_prediction: true
+
