@@ -40,7 +40,6 @@ dependencies:
   - diamond
   - hmmer
   - dbcan
-  - signalp
   - biolib
   - eggnog-mapper
   - interproscan

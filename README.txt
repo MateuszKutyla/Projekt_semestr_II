@@ -44,6 +44,8 @@ Aktualizacja istniejącego środowiska:
 
     mamba env update -f envs/environment.yaml --prune
 
+Uwaga: SignalP nie jest instalowany przez envs/environment.yaml. Jeśli analiza peptydów sygnałowych ma być używana, SignalP trzeba zainstalować osobno zgodnie z instrukcją producenta i udostępnić komendę signalp6 w PATH.
+
 Dane wejściowe
 --------------
 
@@ -210,6 +212,7 @@ Dostępne analizy:
 
 GUI pozwala zaznaczyć dowolny zestaw analiz albo wszystkie narzędzia.
 Z poziomu GUI można przygotować bazę HMM dla HMMER oraz zbudować bazę DIAMOND używaną w etapie predykcji hydrolaz.
+SignalP jest narzędziem opcjonalnym i wymaga osobnej instalacji poza środowiskiem Conda/Mamba.
 
 Główny zbiorczy plik wynikowy:
 
@@ -284,5 +287,6 @@ Plan analizy
 4. Annotacja funkcjonalna w programie GUI: scripts/genome_pipeline_gui.py.
 5. Predykcja hydrolaz w programie GUI: scripts/genome_pipeline_gui.py.
 6. Opcjonalnie: uruchomienie całej analizy jednym przyciskiem Pełny pipeline.
+
 
 

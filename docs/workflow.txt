@@ -165,6 +165,8 @@ Narzędzia:
 - SignalP,
 - DeepTMHMM.
 
+SignalP jest opcjonalny i wymaga osobnej instalacji poza środowiskiem Conda/Mamba. W środowisku envs/environment.yaml nie jest instalowany automatycznie.
+
 Główny wynik zbiorczy:
 
     data/hydrolases/predicted_hydrolases.tsv
@@ -213,3 +215,4 @@ Najważniejsze katalogi
     data/databases/            lokalne bazy DIAMOND i HMM
     results/                   raporty szczegółowe
     logs/                      logi wykonania
+

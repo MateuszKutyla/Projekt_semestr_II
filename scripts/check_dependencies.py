@@ -36,7 +36,7 @@ TOOLS = {
         ("HMMER hmmscan", "hmmscan", True),
         ("HMMER hmmpress", "hmmpress", True),
         ("dbCAN", "run_dbcan.py", False),
-        ("SignalP", "signalp", False),
+        ("SignalP", "signalp6", False),
         ("BioLib", "biolib", False),
     ],
 }
@@ -129,3 +129,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
