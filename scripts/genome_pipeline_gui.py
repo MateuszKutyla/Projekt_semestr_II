@@ -885,22 +885,21 @@ class GenomePipelineApp(tk.Tk):
             messagebox.showerror("DIAMOND", "Dla DIAMOND trzeba wskazać bazę .dmnd.")
             return
 
-        for tool in selected_tools:
-            command = [
-                sys.executable,
-                "scripts/run_hydrolase_prediction.py",
-                "--tool",
-                tool,
-                "--proteins",
-                proteins_path
-            ]
+        command = [
+            sys.executable,
+            "scripts/run_hydrolase_prediction.py",
+            "--tools",
+            ",".join(selected_tools),
+            "--proteins",
+            proteins_path
+        ]
 
-            if tool == "hmmer":
-                command.extend(["--hmm-db", hmm_db.strip()])
-            if tool == "diamond":
-                command.extend(["--diamond-db", diamond_db.strip()])
+        if "hmmer" in selected_tools:
+            command.extend(["--hmm-db", hmm_db.strip()])
+        if "diamond" in selected_tools:
+            command.extend(["--diamond-db", diamond_db.strip()])
 
-            self.run_command(f"Predykcja hydrolaz - {tool}", command)
+        self.run_command("Predykcja hydrolaz - wybrane analizy", command)
     def run_hydrolases(self):
         self.open_hydrolase_prediction_window()
 
@@ -933,6 +932,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

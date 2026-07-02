@@ -262,6 +262,7 @@ def main():
     parser.add_argument("--output-dir", default=str(DEFAULT_OUTPUT_DIR), help="Katalog wynikowy.")
     parser.add_argument("--threads", type=int, default=8)
     parser.add_argument("--tool", choices=["dbcan", "hmmer", "diamond", "signalp", "deeptmhmm", "all"], default="all")
+    parser.add_argument("--tools", default=None, help="Lista narzedzi rozdzielona przecinkami, np. dbcan,hmmer,diamond.")
     parser.add_argument("--hmm-db", default=None, help="Baza HMM dla HMMER, np. Pfam-A.hmm albo baza hydrolaz.")
     parser.add_argument("--diamond-db", default=None, help="Baza DIAMOND z sekwencjami hydrolaz.")
     args = parser.parse_args()
@@ -276,31 +277,39 @@ def main():
 
     results = []
     predictions = []
+    selected_tools = ["dbcan", "hmmer", "diamond", "signalp", "deeptmhmm"] if args.tool == "all" else [args.tool]
 
-    if args.tool in ["dbcan", "all"]:
+    if args.tools:
+        allowed_tools = {"dbcan", "hmmer", "diamond", "signalp", "deeptmhmm"}
+        selected_tools = [tool.strip().lower() for tool in args.tools.split(",") if tool.strip()]
+        unknown_tools = sorted(set(selected_tools) - allowed_tools)
+        if unknown_tools:
+            raise ValueError(f"Nieznane narzedzia hydrolaz: {', '.join(unknown_tools)}")
+
+    if "dbcan" in selected_tools:
         result_path, log_file = run_dbcan(proteins, output_dir, args.threads)
         results.append(("dbCAN", result_path, log_file))
         parse_dbcan_results(result_path, predictions)
 
-    if args.tool in ["hmmer", "all"]:
+    if "hmmer" in selected_tools:
         if not args.hmm_db:
             raise ValueError("Dla HMMER trzeba podac --hmm-db.")
         result_path, log_file = run_hmmer(proteins, output_dir, Path(args.hmm_db), args.threads)
         results.append(("HMMER", result_path, log_file))
         parse_hmmer_results(result_path, predictions)
 
-    if args.tool in ["diamond", "all"]:
+    if "diamond" in selected_tools:
         if not args.diamond_db:
             raise ValueError("Dla DIAMOND trzeba podac --diamond-db.")
         result_path, log_file = run_diamond_hydrolases(proteins, output_dir, Path(args.diamond_db), args.threads)
         results.append(("DIAMOND hydrolases", result_path, log_file))
         parse_diamond_results(result_path, predictions)
 
-    if args.tool in ["signalp", "all"]:
+    if "signalp" in selected_tools:
         result_path, log_file = run_signalp(proteins, output_dir)
         results.append(("SignalP", result_path, log_file))
 
-    if args.tool in ["deeptmhmm", "all"]:
+    if "deeptmhmm" in selected_tools:
         result_path, log_file = run_deeptmhmm(proteins, output_dir)
         results.append(("DeepTMHMM", result_path, log_file))
 
@@ -314,4 +323,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
