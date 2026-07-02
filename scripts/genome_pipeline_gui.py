@@ -421,8 +421,8 @@ class GenomePipelineApp(tk.Tk):
     def open_gene_prediction_window(self):
         window = tk.Toplevel(self)
         window.title("Predykcja genów")
-        window.geometry("720x460")
-        window.minsize(640, 420)
+        window.geometry("720x500")
+        window.minsize(640, 440)
         window.transient(self)
 
         frame = ttk.Frame(window, padding=20)
@@ -431,12 +431,11 @@ class GenomePipelineApp(tk.Tk):
         ttk.Label(frame, text="Predykcja genów", font=("Segoe UI", 18, "bold")).pack(anchor="w")
         ttk.Label(
             frame,
-            text="Wybierz model grzyba dla narzędzia Augustus albo wpisz własny model. Możesz też wybrać opcję bez_modelu.",
+            text="Wybierz model grzyba dla narzędzia Augustus albo wskaż własny model.",
             wraplength=660
         ).pack(anchor="w", pady=(6, 16))
 
         species_list = [
-            "bez_modelu",
             "aspergillus_nidulans",
             "botrytis_cinerea",
             "candida_albicans",
@@ -448,7 +447,8 @@ class GenomePipelineApp(tk.Tk):
             "neurospora_crassa",
             "saccharomyces_cerevisiae_S288C",
             "ustilago_maydis",
-            "yarrowia_lipolytica"
+            "yarrowia_lipolytica",
+            "własny model"
         ]
 
         selected_species = tk.StringVar(value="aspergillus_nidulans")
@@ -459,8 +459,15 @@ class GenomePipelineApp(tk.Tk):
         combo = ttk.Combobox(frame, textvariable=selected_species, values=species_list, state="readonly")
         combo.pack(fill="x", pady=(6, 12))
 
-        ttk.Label(frame, text="Własny model Augustusa, opcjonalnie:").pack(anchor="w")
-        ttk.Entry(frame, textvariable=custom_species).pack(fill="x", pady=(6, 12))
+        ttk.Label(frame, text="Własny model Augustusa:").pack(anchor="w")
+        custom_row = ttk.Frame(frame)
+        custom_row.pack(fill="x", pady=(6, 12))
+        ttk.Entry(custom_row, textvariable=custom_species).pack(side="left", fill="x", expand=True)
+        ttk.Button(
+            custom_row,
+            text="Wybierz",
+            command=lambda: self.choose_augustus_model_file(custom_species)
+        ).pack(side="left", padx=(8, 0))
 
         ttk.Label(frame, text="Plik wejściowy FASTA ze złożonym genomem:").pack(anchor="w")
         genome_row = ttk.Frame(frame)
@@ -497,23 +504,29 @@ class GenomePipelineApp(tk.Tk):
             self.write_log(f"Wybrano plik genomu do predykcji genów: {selected}")
 
     def run_gene_prediction_with_species(self, selected_species, custom_species, genome_path):
-        species = custom_species.strip() if custom_species.strip() else selected_species
+        if selected_species == "własny model":
+            species = custom_species.strip()
+            if not species:
+                messagebox.showerror("Predykcja genów", "Dla opcji własny model wskaż plik albo wpisz nazwę modelu Augustusa.")
+                return
+
+            possible_path = Path(species)
+            if possible_path.exists():
+                species = possible_path.stem
+                self.write_log(f"Użyto nazwy modelu Augustusa na podstawie pliku: {species}")
+        else:
+            species = selected_species
 
         command = [
             sys.executable,
             "scripts/run_gene_prediction.py",
             "--genome",
-            genome_path
+            genome_path,
+            "--species",
+            species
         ]
 
-        if species == "bez_modelu":
-            command.append("--no-species")
-            label = "bez modelu"
-        else:
-            command.extend(["--species", species])
-            label = species
-
-        self.run_command(f"Predykcja genów - Augustus ({label})", command)
+        self.run_command(f"Predykcja genów - Augustus ({species})", command)
     def run_gene_prediction(self):
         self.open_gene_prediction_window()
 
@@ -846,6 +859,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
