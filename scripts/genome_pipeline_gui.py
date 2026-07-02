@@ -89,8 +89,8 @@ class GenomePipelineApp(tk.Tk):
     def open_full_pipeline_window(self):
         window = tk.Toplevel(self)
         window.title("Pełny pipeline")
-        window.geometry("820x650")
-        window.minsize(740, 580)
+        window.geometry("860x720")
+        window.minsize(780, 640)
         window.transient(self)
 
         frame = ttk.Frame(window, padding=20)
@@ -100,13 +100,12 @@ class GenomePipelineApp(tk.Tk):
         ttk.Label(
             frame,
             text="Ten tryb wykona kolejno: assemblację genomu, predykcję genów, annotację funkcjonalną i predykcję hydrolaz.",
-            wraplength=760
+            wraplength=800
         ).pack(anchor="w", pady=(6, 16))
 
         assembly_mode = tk.StringVar(value="hybrid")
         species = tk.StringVar(value="aspergillus_nidulans")
         custom_species = tk.StringVar(value="")
-        no_species = tk.BooleanVar(value=False)
         functional_diamond_db = tk.StringVar(value="")
         hydrolase_hmm_db = tk.StringVar(value="")
         hydrolase_diamond_db = tk.StringVar(value="")
@@ -118,7 +117,7 @@ class GenomePipelineApp(tk.Tk):
             textvariable=assembly_mode,
             values=["illumina", "ont", "hybrid"],
             state="readonly"
-        ).pack(fill="x", pady=(6, 12))
+        ).pack(fill="x", pady=(6, 10))
 
         ttk.Label(frame, text="Model Augustusa:").pack(anchor="w")
         ttk.Combobox(
@@ -132,32 +131,42 @@ class GenomePipelineApp(tk.Tk):
                 "neurospora_crassa",
                 "saccharomyces_cerevisiae_S288C",
                 "ustilago_maydis",
-                "yarrowia_lipolytica"
+                "yarrowia_lipolytica",
+                "własny model"
             ],
             state="readonly"
         ).pack(fill="x", pady=(6, 8))
 
-        ttk.Label(frame, text="Własny model Augustusa, opcjonalnie:").pack(anchor="w")
-        ttk.Entry(frame, textvariable=custom_species).pack(fill="x", pady=(6, 8))
-        ttk.Checkbutton(frame, text="Uruchom predykcję genów bez modelu", variable=no_species).pack(anchor="w", pady=(0, 12))
+        ttk.Label(frame, text="Własny model Augustusa:").pack(anchor="w")
+        custom_row = ttk.Frame(frame)
+        custom_row.pack(fill="x", pady=(6, 10))
+        ttk.Entry(custom_row, textvariable=custom_species).pack(side="left", fill="x", expand=True)
+        ttk.Button(
+            custom_row,
+            text="Wybierz",
+            command=lambda: self.choose_augustus_model_file(custom_species)
+        ).pack(side="left", padx=(8, 0))
 
         ttk.Label(frame, text="Baza DIAMOND do annotacji funkcjonalnej:").pack(anchor="w")
         row1 = ttk.Frame(frame)
         row1.pack(fill="x", pady=(6, 8))
         ttk.Entry(row1, textvariable=functional_diamond_db).pack(side="left", fill="x", expand=True)
         ttk.Button(row1, text="Wybierz", command=lambda: self.choose_diamond_database(functional_diamond_db)).pack(side="left", padx=(8, 0))
+        ttk.Button(row1, text="Zbuduj", command=lambda: self.build_diamond_database(functional_diamond_db, "Zbuduj bazę DIAMOND do annotacji funkcjonalnej")).pack(side="left", padx=(8, 0))
 
         ttk.Label(frame, text="Baza HMM do predykcji hydrolaz:").pack(anchor="w")
         row2 = ttk.Frame(frame)
         row2.pack(fill="x", pady=(6, 8))
         ttk.Entry(row2, textvariable=hydrolase_hmm_db).pack(side="left", fill="x", expand=True)
         ttk.Button(row2, text="Wybierz", command=lambda: self.choose_hmm_database(hydrolase_hmm_db)).pack(side="left", padx=(8, 0))
+        ttk.Button(row2, text="Przygotuj HMM", command=lambda: self.prepare_hmm_database(hydrolase_hmm_db)).pack(side="left", padx=(8, 0))
 
         ttk.Label(frame, text="Baza DIAMOND hydrolaz:").pack(anchor="w")
         row3 = ttk.Frame(frame)
         row3.pack(fill="x", pady=(6, 8))
         ttk.Entry(row3, textvariable=hydrolase_diamond_db).pack(side="left", fill="x", expand=True)
         ttk.Button(row3, text="Wybierz", command=lambda: self.choose_diamond_database(hydrolase_diamond_db)).pack(side="left", padx=(8, 0))
+        ttk.Button(row3, text="Zbuduj", command=lambda: self.build_diamond_database(hydrolase_diamond_db, "Zbuduj bazę DIAMOND hydrolaz")).pack(side="left", padx=(8, 0))
 
         ttk.Label(frame, text="Liczba wątków:").pack(anchor="w")
         ttk.Entry(frame, textvariable=threads).pack(fill="x", pady=(6, 14))
@@ -169,7 +178,6 @@ class GenomePipelineApp(tk.Tk):
                 assembly_mode.get(),
                 species.get(),
                 custom_species.get(),
-                no_species.get(),
                 functional_diamond_db.get(),
                 hydrolase_hmm_db.get(),
                 hydrolase_diamond_db.get(),
@@ -177,25 +185,94 @@ class GenomePipelineApp(tk.Tk):
             )
         ).pack(anchor="e")
 
+    def choose_augustus_model_file(self, custom_species):
+        selected = filedialog.askopenfilename(
+            initialdir=str(self.project_path("data")),
+            title="Wybierz plik własnego modelu Augustusa",
+            filetypes=[
+                ("Augustus/model files", "*.*"),
+                ("Wszystkie pliki", "*.*")
+            ]
+        )
+        if selected:
+            custom_species.set(selected)
+            self.write_log(f"Wybrano własny model Augustusa: {selected}")
+
+    def build_diamond_database(self, target_variable, title):
+        input_fasta = filedialog.askopenfilename(
+            initialdir=str(self.project_path("data")),
+            title=title + " - wybierz plik FASTA",
+            filetypes=[
+                ("FASTA", "*.faa *.fasta *.fa *.fna"),
+                ("Wszystkie pliki", "*.*")
+            ]
+        )
+        if not input_fasta:
+            return
+
+        output_db = filedialog.asksaveasfilename(
+            initialdir=str(self.project_path("data/databases/diamond")),
+            title=title + " - zapisz bazę .dmnd",
+            defaultextension=".dmnd",
+            filetypes=[
+                ("DIAMOND database", "*.dmnd"),
+                ("Wszystkie pliki", "*.*")
+            ]
+        )
+        if not output_db:
+            return
+
+        target_variable.set(output_db)
+        command = ["diamond", "makedb", "--in", input_fasta, "--db", output_db]
+        self.run_command(title, command)
+
+    def prepare_hmm_database(self, target_variable):
+        hmm_file = filedialog.askopenfilename(
+            initialdir=str(self.project_path("data/databases/hmmer")),
+            title="Wybierz plik HMM do przygotowania przez hmmpress",
+            filetypes=[
+                ("HMM database", "*.hmm"),
+                ("Wszystkie pliki", "*.*")
+            ]
+        )
+        if not hmm_file:
+            return
+
+        target_variable.set(hmm_file)
+        command = ["hmmpress", hmm_file]
+        self.run_command("Przygotowanie bazy HMM - hmmpress", command)
+
     def run_full_pipeline(
         self,
         assembly_mode,
         species,
         custom_species,
-        no_species,
         functional_diamond_db,
         hydrolase_hmm_db,
         hydrolase_diamond_db,
         threads
     ):
+        if species == "własny model":
+            selected_species = custom_species.strip()
+            if not selected_species:
+                messagebox.showerror("Pełny pipeline", "Dla opcji własny model wskaż plik albo wpisz nazwę modelu Augustusa.")
+                return
+
+            possible_path = Path(selected_species)
+            if possible_path.exists():
+                selected_species = possible_path.stem
+                self.write_log(f"Użyto nazwy modelu Augustusa na podstawie pliku: {selected_species}")
+        else:
+            selected_species = species
+
         if not functional_diamond_db.strip():
-            messagebox.showerror("Pełny pipeline", "Wskaż bazę DIAMOND do annotacji funkcjonalnej.")
+            messagebox.showerror("Pełny pipeline", "Wskaż albo zbuduj bazę DIAMOND do annotacji funkcjonalnej.")
             return
         if not hydrolase_hmm_db.strip():
-            messagebox.showerror("Pełny pipeline", "Wskaż bazę HMM do predykcji hydrolaz.")
+            messagebox.showerror("Pełny pipeline", "Wskaż albo przygotuj bazę HMM do predykcji hydrolaz.")
             return
         if not hydrolase_diamond_db.strip():
-            messagebox.showerror("Pełny pipeline", "Wskaż bazę DIAMOND hydrolaz.")
+            messagebox.showerror("Pełny pipeline", "Wskaż albo zbuduj bazę DIAMOND hydrolaz.")
             return
 
         command = [
@@ -203,6 +280,8 @@ class GenomePipelineApp(tk.Tk):
             "scripts/run_full_pipeline.py",
             "--assembly-mode",
             assembly_mode,
+            "--species",
+            selected_species,
             "--functional-diamond-db",
             functional_diamond_db.strip(),
             "--hydrolase-hmm-db",
@@ -213,14 +292,7 @@ class GenomePipelineApp(tk.Tk):
             threads.strip() or "8"
         ]
 
-        if no_species:
-            command.append("--no-species")
-        else:
-            selected_species = custom_species.strip() if custom_species.strip() else species
-            command.extend(["--species", selected_species])
-
         self.run_command("Pełny pipeline analizy genomu", command)
-
     def open_denovo_window(self):
         window = tk.Toplevel(self)
         window.title("Assemblacja de novo")
@@ -771,6 +843,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
