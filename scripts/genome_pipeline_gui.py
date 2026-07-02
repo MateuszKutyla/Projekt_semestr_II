@@ -64,13 +64,29 @@ class GenomePipelineApp(tk.Tk):
         self.write_log("Uruchomiono graficzny rdzeń projektu.")
 
     def add_module(self, parent, row, column, title, description, command):
-        frame = ttk.Frame(parent, padding=18, relief="ridge", cursor="hand2")
+        frame = tk.Frame(parent, bg="#ffffff", bd=1, relief="solid", padx=18, pady=18, cursor="hand2")
         frame.grid(row=row, column=column, sticky="nsew", padx=8, pady=8)
 
-        title_label = ttk.Label(frame, text=title, font=("Segoe UI", 15, "bold"), cursor="hand2")
+        title_label = tk.Label(
+            frame,
+            text=title,
+            bg="#ffffff",
+            fg="#111827",
+            font=("Segoe UI", 15, "bold"),
+            cursor="hand2"
+        )
         title_label.pack(anchor="w")
 
-        description_label = ttk.Label(frame, text=description, wraplength=390, cursor="hand2")
+        description_label = tk.Label(
+            frame,
+            text=description,
+            bg="#ffffff",
+            fg="#374151",
+            font=("Segoe UI", 10),
+            wraplength=390,
+            justify="left",
+            cursor="hand2"
+        )
         description_label.pack(anchor="w", pady=(8, 0))
 
         frame.bind("<Button-1>", lambda event: command())
@@ -865,6 +881,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
