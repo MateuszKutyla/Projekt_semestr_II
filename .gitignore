@@ -25,3 +25,6 @@ data/functional_annotation/*
 
 data/hydrolases/*
 !data/hydrolases/.gitkeep
+
+data/databases/*
+!data/databases/.gitkeep

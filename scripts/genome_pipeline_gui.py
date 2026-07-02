@@ -199,17 +199,6 @@ class GenomePipelineApp(tk.Tk):
             self.write_log(f"Wybrano własny model Augustusa: {selected}")
 
     def build_diamond_database(self, target_variable, title):
-        input_fasta = filedialog.askopenfilename(
-            initialdir=str(self.project_path("data")),
-            title=title + " - wybierz plik FASTA",
-            filetypes=[
-                ("FASTA", "*.faa *.fasta *.fa *.fna"),
-                ("Wszystkie pliki", "*.*")
-            ]
-        )
-        if not input_fasta:
-            return
-
         output_db = filedialog.asksaveasfilename(
             initialdir=str(self.project_path("data/databases/diamond")),
             title=title + " - zapisz bazę .dmnd",
@@ -223,25 +212,38 @@ class GenomePipelineApp(tk.Tk):
             return
 
         target_variable.set(output_db)
-        command = ["diamond", "makedb", "--in", input_fasta, "--db", output_db]
-        self.run_command(title, command)
-
+        command = [
+            "python3",
+            "scripts/download_and_build_databases.py",
+            "--kind",
+            "diamond",
+            "--output",
+            output_db
+        ]
+        self.run_command(title + " - pobieranie i budowanie", command)
     def prepare_hmm_database(self, target_variable):
-        hmm_file = filedialog.askopenfilename(
+        output_hmm = filedialog.asksaveasfilename(
             initialdir=str(self.project_path("data/databases/hmmer")),
-            title="Wybierz plik HMM do przygotowania przez hmmpress",
+            title="Pobierz i przygotuj bazę HMM - zapisz jako .hmm",
+            defaultextension=".hmm",
             filetypes=[
                 ("HMM database", "*.hmm"),
                 ("Wszystkie pliki", "*.*")
             ]
         )
-        if not hmm_file:
+        if not output_hmm:
             return
 
-        target_variable.set(hmm_file)
-        command = ["hmmpress", hmm_file]
-        self.run_command("Przygotowanie bazy HMM - hmmpress", command)
-
+        target_variable.set(output_hmm)
+        command = [
+            "python3",
+            "scripts/download_and_build_databases.py",
+            "--kind",
+            "hmm",
+            "--output",
+            output_hmm
+        ]
+        self.run_command("Pobieranie i przygotowanie bazy HMM", command)
     def run_full_pipeline(
         self,
         assembly_mode,
@@ -843,6 +845,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
